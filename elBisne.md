@@ -1,4 +1,4 @@
-# Shopa - Catálogo Online y Marketplace Social
+# elBisne - Catálogo Online y Marketplace Social
 
 El objetivo es simplificar las plataformas de comercio electrónico a un sistema más sencillo y familiar para los usuarios, aprovechandose de las facilidades de las redes sociales y su simpleza para compartir contenidos.
 
