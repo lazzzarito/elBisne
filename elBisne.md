@@ -1,30 +1,116 @@
-# elBisne - Catálogo Online y Marketplace Social
+# elBisne — Catálogo Online y Marketplace Social
 
-El objetivo es simplificar las plataformas de comercio electrónico a un sistema más sencillo y familiar para los usuarios, aprovechandose de las facilidades de las redes sociales y su simpleza para compartir contenidos.
+El objetivo de `elBisne` es simplificar el comercio electrónico usando la familiaridad y fluidez de las redes sociales: navegación rápida, compartir fácil y descubrimiento visual.
 
-## Características Princpiales
+Despliegue inicial: Vercel. Repositorio en GitHub y demo pública en https://elbisne.vercel.app
 
-1. Diseño e interfaz sencilla minimalista para garantizar la rapides de su uso, enfocar el diseño a una UI similar a Instagram con efectos de Liquid Glass, animaciones fluidas entre elementos, transiciones entre paginas suaves, preloader de los elementos para no dar la sensacion de que esta vacia o en blanco. Enfoque de tonos de color agradables.
+## Características principales
 
-2. Base de datos gestionada por Supabase o Firebase.
+- Diseño minimalista e intuitivo inspirado en Pinterest/Instagram con efectos tipo "liquid glass" y animaciones suaves. Priorizar rendimiento y accesibilidad.
+- Backend ligero con sincronización en tiempo real: recomendación principal — Supabase (Postgres, autenticación, storage, realtime). Alternativa — Firebase (Realtime DB / Firestore) para equipos ya familiarizados.
+- Flujo de pedidos basado inicialmente en mensajes a WhatsApp (link directo o mensaje preformateado).
+- Perfiles de negocio llamados “Bisnes”: páginas públicas tipo catálogo con contacto directo, ubicación, horario, productos y estadísticas básicas.
 
-3. Pedidos y compras directas a alguna aplicacion de mensajeria como WhatsApp o Telegram, con los pedidos autogenerados con un mensaje directo a Wp o Tg. (sin usar la api de WhatsApp, mensajes sencillos)
+### Opciones recomendadas
 
+- Base de datos: **Supabase** (SQL, roles, backups) — facilita consultas complejas y escalado. Usar Firebase sólo si se requiere integración profunda con productos Google.
+- Mensajería de pedidos: comenzar con enlaces `https://wa.me/` para MVP.
+- Hosting / CI: Vercel para frontend; integrar GitHub Actions para pruebas y despliegues automáticos.
 
-### Pantalla de bienvenida
+### Opciones a evitar
 
-1. Inicio de sesion sencillo y rapido con correo o Google
+- Depender exclusivamente de mensajes sin confirmación (no es escalable para múltiples pedidos simultáneos).
+- Usar solo imágenes sin metadatos en los productos (SEO y accesibilidad sufrirán). Siempre incluir título, precio, descripción corta y etiquetas.
 
-2. Registro simple con correo o Google. 
+---
 
-Añadir el formulario para crear el perfil
+### Diseños generales
 
-- Datos Personales: Nombre de Usuario (sera el @ que luego servira para compartir el perfil seguido del dominio, ej: https://shopa.shop/nombre_usuario), Nombre del Catalogo, Negocio o Tienda; Numero de Telefono (debe tener whatsapp).
-- Detalles del negocio: Descripcion, direccion, horario laboral, categoria de negocio, si cuenta o no con domicilio o recogida local, contactos adicionales y redes sociales, ubicacion compartida de Google Maps.
-- Foto de Perfil y de portada.
+1. Modal bottom-sheet: todos los detalles (producto, contacto, mapa) se abren en un modal que se desliza desde abajo, ancho completo y altura dinámica. El fondo se difumina y se aplica una capa accesible para cerrar con Esc o toque fuera.
+2. Barra de navegación inferior flotante con efecto glass; íconos: Inicio, Explorar, Mi Perfil. Indicador de pestaña activa con microanimación.
+3. Soporte táctil: swipes para cerrar modales y deslizar galerías. Toda interacción debe funcionar con teclado y lectores de pantalla.
 
+---
 
+### Pantalla de bienvenida / Auth
 
-### Pantalla de inicio
+1. Autenticación simple: correo/contraseña y Google Sign-In.
+2. Al registrarse, elegir tipo de cuenta: **Usuario** o **Catálogo (Bisne)**.
 
-1. Se muestra el marketplace general
+Comportamiento por tipo:
+- Usuario: perfil privado por defecto; feed personal de productos guardados/megusta; interacción social (seguir, comentar, guardar).
+- Catálogo (Bisne): perfil público con página de catálogo, contacto (WhatsApp), mapa, productos y panel de administración.
+
+Formulario de creación de perfil (Catálogo):
+
+- Datos personales / del negocio: `Nombre de usuario (@)`, `Nombre del catálogo/negocio`, `Teléfono (WhatsApp)`.
+- Detalles: `Descripción`, `Dirección`, `Horario`, `Categoría` (predefinidas), `Domicilio/Recogida`, `Redes sociales`.
+- Ubicación: enlace a Google Maps + vista previa en mapa.
+- Imágenes: foto de perfil y portada.
+
+---
+
+### Página de Inicio
+
+1. Slider principal de banners (16:9) para promociones.
+2. Sección "Bisnes cerca de ti": carrusel de perfiles según geolocalización (con permiso del usuario).
+3. Productos recomendados: feed en Masonry grid (estilo Pinterest) que muestra imagen, título recortado, precio y CTA para abrir modal.
+4. Categorías populares: carrusel horizontal con iconos.
+5. Ofertas recientes: sección destacada con etiqueta de rebaja.
+6. Banner final de contenido propio (promociones/guías).
+
+UX: cargar imágenes de forma progresiva, placeholders y lazy-loading para rendimiento.
+
+---
+
+### Página de Explorar
+
+1. Buscador global con sugerencias en tiempo real (autocompletar). Filtrado por: categoría, ubicación, precio, envío.
+2. Tendencias y colecciones (curadas y generadas por actividad — hashtags, búsquedas).
+3. Filtros avanzados y guardado de búsquedas.
+4. Mapa interactivo opcional para ver Bisnes cercanos.
+
+---
+
+### Página de Mi Perfil
+
+Para usuarios comunes:
+- Feed personal con productos guardados y actividad.
+- Ajustes de privacidad y notificaciones.
+
+Para Bisnes (catálogo):
+- Página pública de catálogo con productos, reviews y contacto.
+- Panel de gestión: CRUD de productos, estadísticas básicas (vistas, clics, guardados), mensajes/pedidos (enlaces a WhatsApp o inbox integrado si se implementa).
+- Opciones de verificación: badge para negocios verificados.
+
+---
+
+### Flujo de pedidos y comunicaciones
+
+- MVP: mensaje preformateado a WhatsApp con plantilla que incluye producto, cantidad y enlace al perfil.
+- Fase 2: carrito básico + checkout y confirmación por WhatsApp/Email.
+- Fase 3: integración con WhatsApp Business API para mensajes estructurados, estados de pedido y plantillas.
+
+---
+
+### Privacidad y seguridad
+
+- Cumplir con políticas de protección de datos (GDPR/legislación local según mercado objetivo).
+- Validar y sanitizar todas las entradas en backend.
+- Autenticación segura y opciones de 2FA para Bisnes.
+
+---
+
+### Observabilidad y crecimiento
+
+- Analytics: Google Analytics / Plausible + eventos personalizados para producto/clicks/ventas.
+- Tests: unitarios, E2E (Playwright) para flujos críticos.
+- SEO: meta tags, Open Graph y card previews para compartir productos.
+
+---
+
+### Tareas siguientes (sugeridas)
+
+1. Definir esquema inicial de la base de datos (productos, usuarios, bisnes, categorías, pedidos).
+2. Bocetar pantallas claves (Inicio, Producto modal, Perfil Bisne, Explorar).
+3. Implementar MVP técnico: frontend en Next.js + Supabase + despliegue en Vercel.
