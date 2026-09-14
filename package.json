@@ -1,0 +1,40 @@
+{
+  "name": "elbisne",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "analyze": "ANALYZE=true next build"
+  },
+  "dependencies": {
+    "framer-motion": "^12.40.0",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.0.5",
+    "next": "16.2.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "xlsx": "^0.18.5"
+  },
+  "browserslist": {
+    "production": [
+      "> 0.5%",
+      "last 3 versions",
+      "not dead",
+      "not ie 11",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^15",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7"
+  }
+}

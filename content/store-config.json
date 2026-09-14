@@ -1,0 +1,72 @@
+{
+  "name": "elBisne Demo",
+  "location": "Bogotá, Colombia",
+  "whatsappNumber": "+573001234567",
+  "logoUrl": "/images/logo.webp",
+  "currency": {
+    "code": "USD",
+    "symbol": "$"
+  },
+  "promoBanners": [
+    "/api/images/promos/landscape-promo.webp",
+    "/api/images/promos/square-promo-1.webp",
+    "/api/images/promos/square-promo-2.webp"
+  ],
+  "promoLinks": [
+    {
+      "type": "promo",
+      "target": "summer-fragrances",
+      "title": "Perfumes de Verano",
+      "subtitle": "Fragancias frescas para la temporada"
+    },
+    {
+      "type": "promo",
+      "target": "accessories-edit",
+      "title": "Selección de Accesorios",
+      "subtitle": "Completa tu look con estas piezas"
+    },
+    {
+      "type": "promo",
+      "target": "leather-essentials",
+      "title": "Esenciales de Cuero",
+      "subtitle": "Piezas atemporales, hechas para durar"
+    }
+  ],
+  "socialLinks": {
+    "instagram": "https://instagram.com/elbisne",
+    "facebook": "https://facebook.com/elbisne"
+  },
+  "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.792721894149!2d-74.09351018835026!3d4.7114167424507595!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f9bfd2da34b9b%3A0x239d635520a33914!2sBogot%C3%A1%2C%20Colombia!5e0!3m2!1ses!2sco!4v1710000000000",
+  "trustpilotUrl": "https://www.google.com/maps/search/Bogotá,+Colombia",
+  "googleMapsUrl": "https://www.google.com/maps/search/Bogotá,+Colombia",
+  "businessHours": "Lunes - Sábado, 9:00 AM — 6:00 PM",
+  "deliveriesInfo": "Envíos coordinados en Bogotá",
+  "delivery": {
+    "mode": "both"
+  },
+  "donationUrl": "https://tppay.me/mquz2zh8",
+  "messaging": {
+    "defaultChannel": "whatsapp",
+    "channels": {
+      "whatsapp": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true,
+        "username": "elbismedemo"
+      },
+      "email": {
+        "enabled": true,
+        "address": "demo@elbisne.app"
+      },
+      "sms": {
+        "enabled": false
+      }
+    }
+  },
+  "googleSheets": {
+    "sheetId": "",
+    "apiKey": "",
+    "range": "Sheet1!A:Z"
+  }
+}
