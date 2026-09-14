@@ -3,6 +3,8 @@ import { getProductById, getAllProductIds, getStoreConfig } from "@/lib/products
 import ProductPageClient from "./ProductPageClient";
 import Script from "next/script";
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://elbisne.vercel.app";
+
 export const revalidate = 60;
 
 export async function generateStaticParams() {
@@ -19,7 +21,6 @@ export async function generateMetadata({ params }) {
   const title = product.seoTitle || `${product.name} — ${siteName}`;
   const description = product.seoDescription || product.description || `Shop ${product.name} online.`;
   const image = product.image || "/images/placeholder.svg";
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://elbisne.vercel.app";
   const url = `${baseUrl}/product/${params.id}`;
 
   return {
@@ -51,8 +52,8 @@ export default async function ProductPage({ params }) {
     return (
       <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
         <h1>Producto no encontrado</h1>
-        <p style={{ marginTop: "1rem", color: "var(--text-secondary)" }}>This product does not exist or has been removed.</p>
-        <Link href="/" style={{ display: "inline-block", marginTop: "2rem", color: "var(--accent-green)", fontWeight: 600 }}>← Back to catalog</Link>
+        <p style={{ marginTop: "1rem", color: "var(--text-secondary)" }}>Este producto no existe o fue eliminado.</p>
+        <Link href="/tienda" style={{ display: "inline-block", marginTop: "2rem", color: "var(--accent-green)", fontWeight: 600 }}>← Volver al catálogo</Link>
       </div>
     );
   }
@@ -75,8 +76,8 @@ export default async function ProductPage({ params }) {
     "@context": "https://schema.org/",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: `${baseUrl}/` },
-      { "@type": "ListItem", position: 2, name: product.category || "Products", item: `${baseUrl}/?category=${product.category}` },
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${baseUrl}/` },
+      { "@type": "ListItem", position: 2, name: product.category || "Catálogo", item: `${baseUrl}/tienda?category=${product.category}` },
       { "@type": "ListItem", position: 3, name: product.name },
     ],
   };

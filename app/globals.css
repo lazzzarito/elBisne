@@ -3550,3 +3550,209 @@ body {
 
 .product-page-details ul, .product-page-details ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
 
+
+/* ── BottomNav · elBisne ─────────────────────────────── */
+body {
+  padding-bottom: 84px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg, 0 8px 32px rgba(0,0,0,0.18));
+}
+
+.bottom-nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 4.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+.bottom-nav-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.bottom-nav-item.active {
+  color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Indicador animado del tab activo */
+.bottom-nav-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0.2rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-green);
+}
+
+.bottom-nav-badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.5rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .bottom-nav-item {
+    min-width: 5rem;
+  }
+}
+
+/* ── Home (Fase 1 placeholder) y placeholders ────────── */
+.home-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.home-hero {
+  text-align: center;
+  padding: 3rem 1rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-green) 14%, transparent), transparent);
+  border: 1px solid var(--border-color);
+}
+
+.home-hero-title {
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.home-hero-subtitle {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.home-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.8rem 1.75rem;
+  border-radius: 999px;
+  background: var(--accent-green);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.home-hero-cta:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.home-featured-section {
+  margin-top: 2.5rem;
+}
+
+.home-section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.home-section-sub {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.home-featured-grid {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.home-featured-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--bg-primary));
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.home-featured-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-green);
+  box-shadow: var(--shadow-md);
+}
+
+.home-featured-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.home-featured-price {
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.home-featured-category {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.placeholder-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem;
+  text-align: center;
+}

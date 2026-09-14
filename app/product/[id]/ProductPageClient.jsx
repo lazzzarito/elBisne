@@ -3,47 +3,17 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
 import { getChannelUrl, getDefaultChannel } from "@/lib/messaging";
+import { useApp } from "@/context/AppContext";
 
 export default function ProductPageClient({ product, storeConfig }) {
-  const [cartItems, setCartItems] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("elbisne_cart");
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {}
-    }
-    return [];
-  });
-  const [toast, setToast] = useState(null);
+  const { addToCart } = useApp();
   const [qty, setQty] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState({});
 
-  const showToast = useCallback((msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2700);
-  }, []);
-
-  const saveCart = useCallback((items) => {
-    setCartItems(items);
-    try { localStorage.setItem("elbisne_cart", JSON.stringify(items)); } catch (e) {}
-  }, []);
-
   const handleAddToCart = useCallback(() => {
     const options = Object.keys(selectedOptions).length > 0 ? selectedOptions : null;
-    const cartItemId = options
-      ? `${product.id}-${Object.entries(options).sort().map(([k, v]) => `${k}:${v}`).join("-")}`
-      : product.id;
-
-    const existing = cartItems.find((item) => item.id === cartItemId);
-    if (existing) {
-      saveCart(cartItems.map((item) =>
-        item.id === cartItemId ? { ...item, quantity: item.quantity + qty } : item
-      ));
-    } else {
-      saveCart([...cartItems, { ...product, id: cartItemId, productId: product.id, selectedOptions: options, quantity: qty }]);
-    }
-    showToast(`Añadido: ${product.name}`);
-  }, [product, cartItems, qty, selectedOptions, saveCart, showToast]);
+    addToCart(product, options, qty);
+  }, [product, qty, selectedOptions, addToCart]);
 
   const getChannel = () => typeof window !== "undefined" ? (localStorage.getItem("elbisne_channel") || getDefaultChannel(storeConfig)) : getDefaultChannel(storeConfig);
 
@@ -75,18 +45,8 @@ export default function ProductPageClient({ product, storeConfig }) {
 
   return (
     <div className="product-page-layout">
-      {toast && (
-        <div className="toast-notification" style={{ position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)", zIndex: 210 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          <span>{toast}</span>
-        </div>
-      )}
-
       <div className="product-page-back">
-        <Link href="/" className="product-page-back-link">
+        <Link href="/tienda" className="product-page-back-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
           </svg>

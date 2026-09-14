@@ -7,7 +7,8 @@ import FilterHeader from "@/components/FilterHeader";
 import MasonryGrid from "@/components/MasonryGrid";
 import ProductCard from "@/components/ProductCard";
 import Icon from "@/components/Icon";
-import StoreInfoCard, { StoreInfoItem } from "@/components/StoreInfoCard";
+import StoreInfoCard from "@/components/StoreInfoCard";
+import { useApp } from "@/context/AppContext";
 import { initPopupHistory } from "@/lib/popup-history";
 import { getChannelUrl, getDefaultChannel } from "@/lib/messaging";
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
@@ -20,176 +21,37 @@ const LegalInfoModal = dynamic(() => import("@/components/LegalInfoModal"), { ss
 const FavoritesModal = dynamic(() => import("@/components/FavoritesModal"), { ssr: false, loading: () => null });
 
 export default function CatalogContainer({ initialProducts, storeConfig }) {
-  const [cartItems, setCartItems] = useState([]);
-  const [isClient, setIsClient] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [toastType, setToastType] = useState("success");
-  const [undoItem, setUndoItem] = useState(null);
-  const undoTimeoutRef = useRef(null);
-  const toastTimeoutRef = useRef(null);
+  const {
+    isClient,
+    cartItems,
+    addToCart,
+    updateQty,
+    removeItem,
+    clearCart,
+    favoriteIds,
+    toggleFavorite,
+    recordSale,
+    soldMap,
+    toEffectiveProduct,
+    showToast,
+  } = useApp();
+
   const catalogRef = useRef(null);
   const offersRef = useRef(null);
-  const persistTimerRef = useRef(null);
   const [productQtyMap, setProductQtyMap] = useState({});
-  const [soldMap, setSoldMap] = useState({});
 
-  const persistSold = (map) => {
-    try { localStorage.setItem("elbisne_sold", JSON.stringify(map)); } catch (e) {}
-  };
-
-  const recordSale = useCallback((productId, qty) => {
-    setSoldMap((prev) => {
+  const clearProductQty = useCallback((productId) => {
+    setProductQtyMap((prev) => {
       const next = { ...prev };
-      next[productId] = (next[productId] || 0) + qty;
-      persistSold(next);
+      delete next[productId];
       return next;
     });
   }, []);
 
-  const toEffectiveProduct = useCallback((product) => {
-    if (!product) return product;
-    const sold = soldMap[product.id] || 0;
-    const baseStock = product.stock === undefined || product.stock === null ? Infinity : product.stock;
-    const effectiveStock = Math.max(0, baseStock - sold);
-    return { ...product, stock: effectiveStock };
-  }, [soldMap]);
-
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // ── Cart persistence (debounced) ──
-  const saveCart = (items) => {
-    setCartItems(items);
-    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
-    persistTimerRef.current = setTimeout(() => {
-      localStorage.setItem("elbisne_cart", JSON.stringify(items));
-      persistTimerRef.current = null;
-    }, 300);
-  };
-
-  const persistCartImmediately = (items) => {
-    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
-    localStorage.setItem("elbisne_cart", JSON.stringify(items));
-  };
-
-  const clearCart = useCallback(() => {
-    setCartItems([]);
-    localStorage.removeItem("elbisne_cart");
-  }, []);
-
-  // ── Toast notifications ──
-  const showToast = (message, type = "success") => {
-    setToast(message);
-    setToastType(type);
-    window.clearTimeout(toastTimeoutRef.current);
-    toastTimeoutRef.current = window.setTimeout(() => {
-      setToast(null);
-    }, 2700);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    const cleanup = initPopupHistory(() => showToast("Press back again to exit", "warning"));
+    const cleanup = initPopupHistory(() => showToast("Pulsa atrás de nuevo para salir", "warning"));
     return cleanup;
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      window.clearTimeout(toastTimeoutRef.current);
-    };
-  }, []);
-
-  // ── Cart actions ──
-  const handleAddToCart = (product, selectedOptions = null, qty = 1) => {
-    let cartItemId = product.id;
-    let finalPrice = product.priceUSD;
-    let finalOriginalPrice = product.originalPrice;
-
-    if (selectedOptions && Object.keys(selectedOptions).length > 0) {
-      const optionParts = Object.entries(selectedOptions)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([k, v]) => `${k}:${v}`)
-        .join("-");
-      cartItemId = `${product.id}-${optionParts}`;
-
-      if (product.options) {
-        Object.entries(selectedOptions).forEach(([optionKey, selectedValName]) => {
-          const optGroup = product.options[optionKey];
-          if (optGroup) {
-            const matchedVal = optGroup.find((o) => o.name === selectedValName);
-            if (matchedVal && matchedVal.priceUSD !== undefined) {
-              finalPrice = matchedVal.priceUSD;
-              finalOriginalPrice = matchedVal.originalPrice !== undefined ? matchedVal.originalPrice : null;
-            }
-          }
-        });
-      }
-    }
-
-    const existing = cartItems.find((item) => item.id === cartItemId);
-    if (existing) {
-      saveCart(
-        cartItems.map((item) =>
-          item.id === cartItemId ? { ...item, quantity: item.quantity + qty } : item
-        )
-      );
-    } else {
-      saveCart([
-        ...cartItems,
-        {
-          ...product,
-          id: cartItemId,
-          productId: product.id,
-          priceUSD: finalPrice,
-          originalPrice: finalOriginalPrice,
-          selectedOptions,
-          quantity: qty,
-        },
-      ]);
-    }
-    showToast(`Añadido: ${product.name}`);
-    clearProductQty(product.id);
-  };
-
-  const handleUpdateQty = (id, qty) => {
-    if (qty <= 0) {
-      handleRemoveItem(id);
-    } else {
-      saveCart(
-        cartItems.map((item) =>
-          item.id === id ? { ...item, quantity: qty } : item
-        )
-      );
-      showToast("Cantidad actualizada");
-    }
-  };
-
-  const handleRemoveItem = (id) => {
-    const itemToRemove = cartItems.find((item) => item.id === id);
-    saveCart(cartItems.filter((item) => item.id !== id));
-    if (itemToRemove) {
-      setUndoItem(itemToRemove);
-      showToast(`Eliminado: ${itemToRemove.name}`);
-      window.clearTimeout(undoTimeoutRef.current);
-      undoTimeoutRef.current = window.setTimeout(() => setUndoItem(null), 4000);
-    }
-  };
-
-  const handleUndoRemove = () => {
-    if (!undoItem) return;
-    window.clearTimeout(undoTimeoutRef.current);
-    setUndoItem(null);
-    setToast(null);
-    saveCart([...cartItems, undoItem]);
-    showToast(`Restored: ${undoItem.name}`);
-  };
+  }, [showToast]);
 
   // ── Category, search & sort state ──
   const categories = useMemo(() => {
@@ -330,29 +192,6 @@ export default function CatalogContainer({ initialProducts, storeConfig }) {
   const [quickBuyProduct, setQuickBuyProduct] = useState(null);
   const [showOffers, setShowOffers] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
-  const [favoriteIds, setFavoriteIds] = useState([]);
-
-  const toggleFavorite = useCallback((productId) => {
-    const isCurrentlyFav = favoriteIds.includes(productId);
-    const next = isCurrentlyFav
-      ? favoriteIds.filter((id) => id !== productId)
-      : [...favoriteIds, productId];
-    setFavoriteIds(next);
-    try { localStorage.setItem("elbisne_favorites", JSON.stringify(next)); } catch (e) {}
-    showToast(isCurrentlyFav ? "Eliminado de favoritos" : "Añadido a favoritos", isCurrentlyFav ? "warning" : "success");
-  }, [favoriteIds]);
-
-  // ── Load persisted data from localStorage after hydration (batched) ──
-  useEffect(() => {
-    try {
-      const cart = localStorage.getItem("elbisne_cart");
-      if (cart) setCartItems(JSON.parse(cart));
-      const sold = localStorage.getItem("elbisne_sold");
-      if (sold) setSoldMap(JSON.parse(sold));
-      const favs = localStorage.getItem("elbisne_favorites");
-      if (favs) setFavoriteIds(JSON.parse(favs));
-    } catch (e) { console.error("Error reading localStorage:", e); }
-  }, []);
 
   const footerRef = useRef(null);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
@@ -373,6 +212,11 @@ export default function CatalogContainer({ initialProducts, storeConfig }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleAddToCart = useCallback((product, selectedOptions = null, qty = 1) => {
+    addToCart(product, selectedOptions, qty);
+    clearProductQty(product.id);
+  }, [addToCart, clearProductQty]);
+
   const productQty = selectedProduct ? (productQtyMap[selectedProduct.id] ?? 1) : 1;
 
   const handleQtyChange = useCallback((qty) => {
@@ -380,14 +224,6 @@ export default function CatalogContainer({ initialProducts, storeConfig }) {
       setProductQtyMap((prev) => ({ ...prev, [selectedProduct.id]: qty }));
     }
   }, [selectedProduct]);
-
-  const clearProductQty = useCallback((productId) => {
-    setProductQtyMap((prev) => {
-      const next = { ...prev };
-      delete next[productId];
-      return next;
-    });
-  }, []);
 
   const handlePromoClick = useCallback((index) => {
     const links = storeConfig.promoLinks || [];
@@ -426,16 +262,6 @@ export default function CatalogContainer({ initialProducts, storeConfig }) {
         productCount={sortedProducts.length}
         totalCount={initialProducts.length}
       />
-
-      {toast && (
-        <div className={`toast-notification ${toastType}${undoItem ? " has-undo" : ""}`} role="status">
-          <Icon name={toastType === "warning" ? "warning" : "check"} />
-          <span>{toast}</span>
-          {undoItem && (
-            <button className="toast-undo-btn" onClick={handleUndoRemove}>Deshacer</button>
-          )}
-        </div>
-      )}
 
       {/* ── Main content: promos, offers, product grid ── */}
       <main className="main-container" id="main-content">
@@ -555,8 +381,8 @@ export default function CatalogContainer({ initialProducts, storeConfig }) {
 
       <Cart
         cartItems={cartItems}
-        onUpdateQty={handleUpdateQty}
-        onRemoveItem={handleRemoveItem}
+        onUpdateQty={updateQty}
+        onRemoveItem={removeItem}
         onClearCart={clearCart}
         storeConfig={storeConfig}
         onOrderComplete={() => {

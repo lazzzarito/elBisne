@@ -1,4 +1,7 @@
 import "./globals.css";
+import { AppProvider } from "@/context/AppContext";
+import BottomNav from "@/components/navigation/BottomNav";
+import ToastNotification from "@/components/ToastNotification";
 import Preloader from "@/components/Preloader";
 import { Inter } from "next/font/google";
 
@@ -36,9 +39,11 @@ export default function RootLayout({ children }) {
       <link rel="preconnect" href="https://wa.me" />
       <body>
         <a href="#main-content" className="skip-to-content">Saltar al contenido</a>
-        <Preloader>
-          {children}
-        </Preloader>
+        <AppProvider>
+          <Preloader>{children}</Preloader>
+          <BottomNav />
+          <ToastNotification />
+        </AppProvider>
       </body>
     </html>
   );

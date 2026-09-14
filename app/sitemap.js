@@ -20,6 +20,12 @@ export default async function sitemap() {
       changeFrequency: "weekly",
       priority: 1.0,
     },
+    {
+      url: `${baseUrl}/tienda`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
     ...productUrls,
   ];
 }
