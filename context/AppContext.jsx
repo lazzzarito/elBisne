@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const AppContext = createContext(null);
 
@@ -19,6 +20,8 @@ export function AppProvider({ children }) {
   const toastTimeoutRef = useRef(null);
   const persistTimerRef = useRef(null);
   const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -46,6 +49,42 @@ export function AppProvider({ children }) {
       setToast(null);
       setUndoItem(null);
     }, 3000);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient || !isSupabaseConfigured()) return;
+    let active = true;
+    const supabase = createClient();
+    setAuthLoading(true);
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (data?.session) setUser(data.session.user);
+      setAuthLoading(false);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [isClient]);
+
+  const signOut = useCallback(async () => {
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error("Error al cerrar sesión:", e);
+      }
+    }
+    setUser(null);
+    setAuthLoading(false);
   }, []);
 
   useEffect(() => {
@@ -209,8 +248,10 @@ export function AppProvider({ children }) {
     toast,
     toastType,
     showToast,
-    user: null,
-    isLoggedIn: false,
+    user,
+    isLoggedIn: Boolean(user),
+    authLoading,
+    signOut,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
