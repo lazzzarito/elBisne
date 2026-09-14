@@ -14,9 +14,12 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
   const [lastAddedQty, setLastAddedQty] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
 
-  useEffect(() => {
+  // Reset derivado en render cuando cambia el producto (patrón oficial React)
+  const [lastProduct, setLastProduct] = useState(product);
+  if (product !== lastProduct) {
+    setLastProduct(product);
+    const defaults = {};
     if (product) {
-      const defaults = {};
       if (product.options) {
         Object.entries(product.options).forEach(([key, values]) => {
           if (values && values.length > 0) {
@@ -26,8 +29,12 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
       }
       setSelectedOptions(defaults);
       setActiveImage(0);
-      return lockBodyScroll();
     }
+  }
+
+  useEffect(() => {
+    if (!product) return undefined;
+    return lockBodyScroll();
   }, [product]);
 
   useHistoryPopup(!!product, onClose);

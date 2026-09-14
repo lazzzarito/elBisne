@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Template original (fuera del repo) con un .git huérfano que bloquea el scan
+    "Whatalog-Template/**",
   ]),
 ]);
 

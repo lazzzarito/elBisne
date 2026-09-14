@@ -8,7 +8,10 @@ import ProductCard from "@/components/ProductCard";
 
 export default function FavoritesModal({ products, favoriteIds, onToggleFavorite, onClose, onAddToCart, onOpenProduct }) {
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const unlock = lockBodyScroll();

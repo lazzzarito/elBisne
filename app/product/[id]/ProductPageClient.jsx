@@ -15,7 +15,10 @@ export default function ProductPageClient({ product, storeConfig }) {
     addToCart(product, options, qty);
   }, [product, qty, selectedOptions, addToCart]);
 
-  const getChannel = () => typeof window !== "undefined" ? (localStorage.getItem("elbisne_channel") || getDefaultChannel(storeConfig)) : getDefaultChannel(storeConfig);
+  const getChannel = useCallback(
+    () => typeof window !== "undefined" ? (localStorage.getItem("elbisne_channel") || getDefaultChannel(storeConfig)) : getDefaultChannel(storeConfig),
+    [storeConfig]
+  );
 
   const handleShare = useCallback(async () => {
     const text = `Mira esto: ${product.name} - $${product.priceUSD.toFixed(2)}`;
@@ -27,14 +30,14 @@ export default function ProductPageClient({ product, storeConfig }) {
       const shareUrl = getChannelUrl(getChannel(), storeConfig, text);
       window.open(shareUrl, '_blank');
     }
-  }, [product, storeConfig]);
+  }, [product, storeConfig, getChannel]);
 
   const handleBuyNow = useCallback(() => {
     handleAddToCart();
     const msg = `¡Hola! Quiero comprar *${product.name}* ($${product.priceUSD.toFixed(2)}) x ${qty}.`;
     const url = getChannelUrl(getChannel(), storeConfig, msg);
     window.open(url, "_blank");
-  }, [product, qty, storeConfig, handleAddToCart]);
+  }, [product, qty, storeConfig, handleAddToCart, getChannel]);
 
   const hasOptions = product.options && Object.keys(product.options).length > 0;
   const hasDiscount = product.originalPrice != null && product.originalPrice > product.priceUSD;

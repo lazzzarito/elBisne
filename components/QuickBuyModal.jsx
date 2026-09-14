@@ -35,7 +35,11 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
   );
   const enabledChannels = getEnabledChannels(storeConfig);
 
-  useEffect(() => {
+  const [lastProduct, setLastProduct] = useState(product);
+
+  // Reset derivado en render cuando cambia el producto (patrón oficial React)
+  if (product !== lastProduct) {
+    setLastProduct(product);
     if (product) {
       setSelectedOptions(product.selectedOptions || (() => {
         const defaults = {};
@@ -46,6 +50,11 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
         }
         return defaults;
       })());
+    }
+  }
+
+  useEffect(() => {
+    if (product) {
       const unlock = lockBodyScroll();
       const handler = (e) => { if (e.key === "Escape") onClose(); };
       document.addEventListener("keydown", handler);
@@ -54,6 +63,7 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
         unlock();
       };
     }
+    return undefined;
   }, [product, onClose]);
 
   useHistoryPopup(!!product, onClose);

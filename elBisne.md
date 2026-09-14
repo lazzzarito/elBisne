@@ -115,13 +115,14 @@ CREATE TABLE categories (
 -- Productos (cada uno pertenece a un Bisne)
 CREATE TABLE products (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug            TEXT UNIQUE,                    -- id del .md original, usado en /product/[slug]
   bisne_id        UUID NOT NULL REFERENCES bisnes(id) ON DELETE CASCADE,
   name            TEXT NOT NULL,
   description     TEXT,
   price           NUMERIC(10,2) NOT NULL,
   original_price  NUMERIC(10,2),
-  stock           INTEGER DEFAULT 0,
-  status          TEXT CHECK (status IN ('available','coming_soon','out_of_stock')) DEFAULT 'available',
+  stock           INTEGER DEFAULT 0,              -- NULL = sin límite
+  status          TEXT CHECK (status IN ('available','coming_soon','coming-soon','out_of_stock')) DEFAULT 'available',
   featured        BOOLEAN DEFAULT false,
   offer           BOOLEAN DEFAULT false,
   category_id     UUID REFERENCES categories(id),
@@ -129,6 +130,10 @@ CREATE TABLE products (
   attributes      JSONB DEFAULT '{}',            -- {Material: "Acero", ...}
   options         JSONB DEFAULT '{}',            -- {Size: [{name, priceUSD, image}], ...}
   ratio           TEXT CHECK (ratio IN ('tall','square','wide')),
+  content_html    TEXT,                          -- body Markdown renderizado
+  seo_title       TEXT,
+  seo_description TEXT,
+  promo           TEXT,                          -- target de promoLinks
   sort_order      INTEGER DEFAULT 0,
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now()
@@ -183,6 +188,15 @@ CREATE TABLE verification_requests (
 - Favoritos/Follows: CRUD propio (`auth.uid() = user_id`)
 - Perfil: lectura pública, escritura solo propio
 - Verificación: lectura propia + admin, escritura propia + admin
+- Storage `product-images`: lectura pública (bucket público), escritura solo service_role
+
+### Catálogo en Supabase (Fase 2b)
+
+- 26 productos volcados desde `content/products/*.md` → tabla `products` (slug = id del MD, URLs `/product/[slug]` intactas)
+- Imágenes locales `.webp` → Supabase Storage (bucket público `product-images`), el route `/api/images/products` se eliminó
+- Asignación por categoría a 4 bisnes demo: `bazar-elbisne` (Ropa/Calzado/Deportes/Electrónica/General), `bosque-verde` (Hogar/Hogar y Cocina), `dorado-shop` (Joyería/Accesorios), `lux-beauty` (Perfumería/Cosméticos)
+- `lib/products.js` reescrito: lee de `products` + `categories` con el server data-client (SSG/ISR sin cookies); `getStoreConfig()` sigue leyendo `content/store-config.json`
+- `gray-matter`/`marked` pasaron a devDependencies (solo los usa `migrate-products.mjs`); se eliminó `xlsx` y los loaders legacy (Sheets/CSV/XLSX)
 
 ---
 
@@ -401,7 +415,7 @@ Heredada del template:
 |---|---|---|
 | **0 · Base** | Copiar template a raíz, instalar deps, env de Supabase, identidad elBisne, textos en español | `npm run dev` funciona |
 | **1 · Shell** | BottomNav 3 tabs, AppContext (auth/carrito/favoritos), popup-history heredado, i18n español de componentes | Navegas entre 3 pestañas, modales en español |
-| **2 · Supabase** | Migraciones SQL (schema + RLS: `bisnes`, `products`, `orders`, `favorites`, `reviews`, `coupons`, `notifications`), clientes, seed (categorías, 2-3 bisnes demo, productos), auth email+Google | Usuarios se registran, datos seed visibles |
+| **2 · Supabase** | Migraciones SQL (schema + RLS: `bisnes`, `products`, `orders`, `favorites`, `reviews`, `coupons`, `notifications`), clientes, seed (categorías, bisnes demo), auth email+Google. **2b · Catálogo**: volcado de los 26 productos MD → `products` + Storage (`product-images`), `lib/products.js` lee de Supabase, borrado de `content/products/` | Usuarios se registran, datos seed visibles, catálogo en DB |
 | **3 · Home** | BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection | Feed completo con infinite scroll |
 | **4 · Explorar** | GlobalSearch autocomplete, filtros, tendencias, mapa de Bisnes | Búsquedas funcionales contra full-text |
 | **5 · Tienda** | `/b/[handle]` = CatalogContainer parametrizado + tema + Seguir + favoritos síncronos + chip de calificación promedio (reviews) | Cada Bisne tiene su tienda personalizada |
@@ -499,17 +513,22 @@ elBisne/
 ├── lib/
 │   ├── supabase/
 │   │   ├── client.js               Browser client
-│   │   └── server.js               Server client
-│   ├── products.js                 REESCRIBIR (lectura desde Supabase)
+│   │   ├── server.js               Server client (cookies)
+│   │   └── data.js                 Cliente de lectura pública (SSG/ISR, sin cookies)
+│   ├── products.js                 REESCRITO (lectura desde Supabase: products + categories)
 │   ├── messaging.js                REUTILIZAR (número del vendedor)
 │   ├── popup-history.js            REUTILIZAR
 │   ├── scroll-lock.js              REUTILIZAR
 │   ├── use-focus-trap.js           REUTILIZAR
 │   ├── use-history-popup.js        REUTILIZAR
 │   └── i18n.js                     NUEVO (diccionario español)
+├── scripts/
+│   ├── seed.mjs                   Usuarios/bisnes demo (idempotente, Admin API + REST)
+│   └── migrate-products.mjs       Volcado 1:1 de MD → products + Storage (Fase 2b)
 ├── supabase/
 │   └── migrations/
-│       └── 001_initial_schema.sql  Esquema completo + RLS + seed
+│       ├── 001_initial_schema.sql  Esquema completo + RLS + categorías
+│       └── 002_catalog.sql         Catálogo: slug, content_html, seo, promo, status coming-soon
 ├── public/
 │   ├── manifest.json               PWA
 │   ├── sw.js                       Service worker
@@ -524,7 +543,7 @@ elBisne/
 
 ## Tareas siguientes (orden de ejecución)
 
-1. Copiar template a la raíz del repositorio e instalar dependencias
-2. Configurar Supabase (proyecto, env vars, esquema SQL)
-3. Implementar Fase 0 y 1: base + shell + BottomNav + i18n
-4. Continuar con fases 2-8 según el roadmap
+1. ✅ Fase 0, 1 y 2 completadas (base, shell, Supabase, auth email). Faltan para cerrar Fase 2: Google Sign-In (dashboard + OAuth Client) y rotación del PAT/secret expuestos en chat
+2. ✅ Fase 2b: catálogo en Supabase (26 productos, Storage `product-images`, `lib/products.js` desde DB)
+3. Fase 3 · Home: BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection
+4. Continuar con fases 4-8 según el roadmap

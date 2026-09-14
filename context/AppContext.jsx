@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const AppContext = createContext(null);
@@ -19,26 +19,29 @@ export function AppProvider({ children }) {
   const undoTimeoutRef = useRef(null);
   const toastTimeoutRef = useRef(null);
   const persistTimerRef = useRef(null);
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
     if (!isClient) return;
-    try {
-      const cart = localStorage.getItem("elbisne_cart");
-      if (cart) setCartItems(JSON.parse(cart));
-      const sold = localStorage.getItem("elbisne_sold");
-      if (sold) setSoldMap(JSON.parse(sold));
-      const favs = localStorage.getItem("elbisne_favorites");
-      if (favs) setFavoriteIds(JSON.parse(favs));
-    } catch (e) {
-      console.error("Error reading localStorage:", e);
-    }
+    const timer = window.setTimeout(() => {
+      try {
+        const cart = localStorage.getItem("elbisne_cart");
+        if (cart) setCartItems(JSON.parse(cart));
+        const sold = localStorage.getItem("elbisne_sold");
+        if (sold) setSoldMap(JSON.parse(sold));
+        const favs = localStorage.getItem("elbisne_favorites");
+        if (favs) setFavoriteIds(JSON.parse(favs));
+      } catch (e) {
+        console.error("Error reading localStorage:", e);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [isClient]);
 
   const showToast = useCallback((message, type = "success") => {
@@ -55,7 +58,6 @@ export function AppProvider({ children }) {
     if (!isClient || !isSupabaseConfigured()) return;
     let active = true;
     const supabase = createClient();
-    setAuthLoading(true);
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       if (data?.session) setUser(data.session.user);

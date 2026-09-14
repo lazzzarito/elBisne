@@ -37,6 +37,7 @@ const DEMO_USERS = [
   { email: "duena@bosqueverde.example", password: "Demodemo123", full_name: "María Vera" },
   { email: "owner@dorado.example", password: "Demodemo123", full_name: "Oscar Dorado" },
   { email: "gerente@luxbeauty.example", password: "Demodemo123", full_name: "Lucia Franco" },
+  { email: "bazar@elbisne.example", password: "Demodemo123", full_name: "Inés Bazar" },
 ];
 
 const BISNES = [
@@ -76,24 +77,33 @@ const BISNES = [
     theme: { accent: "#c2185b", radiusScale: 1.15 },
     layout: { masonryColumns: 2, showOffers: true, showMap: false },
   },
+  {
+    slug: "bazar-elbisne",
+    business_name: "Bazar elBisne",
+    slogan: "Ropa, calzado, deporte y electrónica",
+    phone_whatsapp: "+34600000004",
+    description: "Multimarca: moda, calzado, deportes y electrónica para todos.",
+    category_slug: "general",
+    delivery_mode: "both",
+    verified: false,
+    theme: { accent: "#1f6feb", radiusScale: 1.0 },
+    layout: { masonryColumns: 2, showOffers: true, showMap: false },
+  },
 ];
 
-const PRODUCTS = [
-  { bisne: 0, name: "Juego de tazas de cerámica", description: "Tres tazas de cerámica artesanal con acabado esmaltado.", price: 24, original_price: 32, stock: 8, featured: true, offer: false, category: "hogar", image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=600&auto=format&fit=crop", ratio: "square" },
-  { bisne: 0, name: "Trío de velas de soja aromáticas", description: "Tres velas de cera de soja con aroma a vainilla, lavanda y cítricos.", price: 19, original_price: 26, stock: 12, featured: true, offer: true, category: "hogar", image: "https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=600&auto=format&fit=crop", ratio: "tall" },
-  { bisne: 0, name: "Aceite relajante de lavanda", description: "Aceite esencial de lavanda para difusor y masajes. 50 ml.", price: 14, original_price: 18, stock: 20, featured: false, offer: false, category: "cosmeticos", image: "https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600&auto=format&fit=crop", ratio: "square" },
-  { bisne: 1, name: "Aros de plata", description: "Pendientes de aro en plata de ley.", price: 32, original_price: 42, stock: 6, featured: true, offer: true, category: "joyeria", image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?q=80&w=600&auto=format&fit=crop", ratio: "square" },
-  { bisne: 1, name: "Gafas de sol redondas retro", description: "Estilo retro con protección UV400.", price: 27, original_price: 36, stock: 10, featured: false, offer: false, category: "accesorios", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=600&auto=format&fit=crop", ratio: "square" },
-  { bisne: 1, name: "Cartera de cuero", description: "Cartera de cuero genuino con varios compartimentos.", price: 38, original_price: null, stock: 9, featured: true, offer: false, category: "accesorios", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop", ratio: "wide" },
-  { bisne: 2, name: "Perfume Floral de Rosa", description: "Fragancia de rosa silvestre y jazmín premium.", price: 18, original_price: 25, stock: 5, featured: true, offer: true, category: "perfumeria", image: "/api/images/products/perfume_rose.webp", ratio: "tall" },
-  { bisne: 2, name: "Colonia Cítrica de Verano", description: "Colonia fresca con notas de cítricos y menta.", price: 16, original_price: 21, stock: 15, featured: true, offer: true, category: "perfumeria", image: "https://images.unsplash.com/photo-1587017539504-67cfbddac569?q=80&w=600&auto=format&fit=crop", ratio: "square" },
-  { bisne: 2, name: "Sérum de vitamina C", description: "Sérum facial iluminador. 30 ml.", price: 22, original_price: 29, stock: 7, featured: false, offer: false, category: "cosmeticos", image: "/api/images/products/vitamin-c-brightening-serum.webp", ratio: "square" },
-];
+const PRODUCTS = [];
 
 async function main() {
   console.log("Creando usuarios demo...");
+  const existingUsers = await api("/auth/v1/admin/users?per_page=1000", "GET");
+  const existingByEmail = Object.fromEntries(existingUsers.users.map((u) => [u.email, u.id]));
   const userIds = [];
   for (const u of DEMO_USERS) {
+    if (existingByEmail[u.email]) {
+      console.log(`  ↻ ${u.email} -> ya existe (${existingByEmail[u.email]})`);
+      userIds.push(existingByEmail[u.email]);
+      continue;
+    }
     const created = await api("/auth/v1/admin/users", "POST", {
       email: u.email,
       password: u.password,
@@ -110,9 +120,17 @@ async function main() {
   const catMap = Object.fromEntries(categories.map((c) => [c.slug, c.id]));
 
   console.log("\nCreando bisnes...");
+  const existingBisnes = await api("/rest/v1/bisnes?select=id,handle,owner_id", "GET");
+  const existingByHandle = Object.fromEntries(existingBisnes.map((b) => [b.handle, b]));
   const bisneIds = [];
   for (let i = 0; i < BISNES.length; i++) {
     const b = BISNES[i];
+    const existing = existingByHandle[b.slug];
+    if (existing) {
+      console.log(`  ↻ ${b.slug} -> ya existe (${existing.id})`);
+      bisneIds.push(existing.id);
+      continue;
+    }
     const payload = {
       owner_id: userIds[i],
       handle: b.slug,
@@ -129,28 +147,6 @@ async function main() {
     const [created] = await api("/rest/v1/bisnes", "POST", payload, { Prefer: "return=representation" });
     console.log(`  ✓ ${b.slug} -> ${created.id}`);
     bisneIds.push(created.id);
-    await new Promise((r) => setTimeout(r, 200));
-  }
-
-  console.log("\nCreando productos...");
-  for (const p of PRODUCTS) {
-    const payload = {
-      bisne_id: bisneIds[p.bisne],
-      name: p.name,
-      description: p.description,
-      price: p.price,
-      original_price: p.original_price,
-      stock: p.stock,
-      status: "available",
-      featured: p.featured,
-      offer: p.offer,
-      category_id: catMap[p.category],
-      images: [p.image],
-      ratio: p.ratio,
-      sort_order: 0,
-    };
-    const [created] = await api("/rest/v1/products", "POST", payload, { Prefer: "return=representation" });
-    console.log(`  ✓ ${p.name} -> ${created.id}`);
     await new Promise((r) => setTimeout(r, 200));
   }
 

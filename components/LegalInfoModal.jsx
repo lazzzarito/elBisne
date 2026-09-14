@@ -103,12 +103,12 @@ const SECTIONS = [
           <li><strong>Framework:</strong> Next.js 16 (App Router) — generación de sitios estáticos (SSG) con Turbopack</li>
           <li><strong>Lenguaje:</strong> JavaScript (ECMAScript) con JSX</li>
           <li><strong>Estilos:</strong> Tailwind CSS v4 vía variables CSS personalizadas (custom properties), sin archivo de configuración</li>
-          <li><strong>Contenido:</strong> Archivos Markdown con frontmatter YAML (<code>content/products/*.md</code>) — sin base de datos</li>
+          <li><strong>Contenido:</strong> Supabase (PostgreSQL + Storage) — productos, categorías, bisnes y autenticación, con Row Level Security</li>
           <li><strong>Estado:</strong> Hooks de React <code>useState</code> + <code>useEffect</code>, solo del lado del cliente</li>
           <li><strong>Persistencia:</strong> <code>localStorage</code> del navegador (carrito, favoritos, datos del cliente, contadores de vendidos)</li>
           <li><strong>Pedidos:</strong> Mensajería multicanal (WhatsApp, Telegram, Email) mediante deep links — sin backend</li>
-          <li><strong>Imágenes:</strong> componente Image de Next.js con rutas dinámicas (<code>/api/images/*</code>)</li>
-          <li><strong>Despliegue:</strong> Exportación totalmente estática, desplegable en cualquier host estático (Vercel, Netlify, GitHub Pages, etc.)</li>
+          <li><strong>Imágenes:</strong> Supabase Storage (bucket público <code>product-images</code>) con componente Image de Next.js</li>
+          <li><strong>Despliegue:</strong> Generación estática (SSG/ISR) con Next.js, desplegable en Vercel, Netlify, etc.</li>
         </ul>
         <h4 style={{ margin: "1rem 0 0.5rem", fontSize: "0.85rem", color: "var(--text-primary)" }}>Características clave</h4>
         <ul>
