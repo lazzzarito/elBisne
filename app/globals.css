@@ -3977,3 +3977,335 @@ body {
   color: var(--text-secondary);
   line-height: 1.5;
 }
+
+/* ===== Fase 3 · Home Feed ===== */
+.home-feed {
+  margin-top: 82px;
+  padding-bottom: 3rem;
+}
+
+/* Banner Slider */
+.banner-slider {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg, 18px);
+  border: 1px solid var(--border-color);
+  margin-bottom: 2.5rem;
+  background: var(--bg-secondary);
+}
+
+.banner-slider-track {
+  display: flex;
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.banner-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  position: relative;
+  aspect-ratio: 21 / 8;
+}
+
+.banner-slide-btn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.banner-slide-img {
+  object-fit: cover;
+}
+
+.banner-slide-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+  color: #fff;
+  pointer-events: none;
+}
+
+.banner-slide-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.banner-slide-subtitle {
+  font-size: 0.85rem;
+  opacity: 0.92;
+}
+
+.banner-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.banner-arrow:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.banner-arrow-prev { left: 12px; }
+.banner-arrow-next { right: 12px; }
+
+.banner-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+
+.banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.2s ease, width 0.2s ease;
+}
+
+.banner-dot.active {
+  width: 22px;
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .banner-slide {
+    aspect-ratio: 4 / 3;
+  }
+  .banner-slide-overlay {
+    padding: 0.75rem 1rem;
+  }
+  .banner-slide-title {
+    font-size: 1.05rem;
+  }
+  .banner-arrow {
+    width: 32px;
+    height: 32px;
+  }
+  .banner-arrow-prev { left: 8px; }
+  .banner-arrow-next { right: 8px; }
+}
+
+/* Categories Carousel */
+.categories-carousel-section {
+  margin-bottom: 2.5rem;
+}
+
+.categories-carousel {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.125rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.categories-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.category-chip {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--bg-primary));
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category-chip:hover {
+  border-color: var(--accent-green);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.08));
+}
+
+.category-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-green);
+}
+
+.category-chip-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.category-chip-count {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+
+/* Businesses NearYou */
+.businesses-carousel-section {
+  margin-bottom: 2.5rem;
+}
+
+.businesses-carousel {
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.125rem 0.5rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.businesses-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.business-card {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--bg-primary));
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-green);
+  box-shadow: var(--shadow-md);
+}
+
+.business-card-logo {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent-green) 12%, var(--bg-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--accent-green);
+  font-size: 1.25rem;
+}
+
+.business-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.business-card-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.business-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  color: #fff;
+  flex: none;
+}
+
+.business-verified-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+.business-card-slogan {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.business-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.business-card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--accent-green);
+  font-weight: 700;
+}
+
+.business-card-address {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Recommendations feed */
+.recommendations-section {
+  margin-bottom: 1rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
+}
+
+@media (max-width: 768px) {
+  .home-feed {
+    margin-top: 52px;
+  }
+}

@@ -416,7 +416,7 @@ Heredada del template:
 | **0 · Base** | Copiar template a raíz, instalar deps, env de Supabase, identidad elBisne, textos en español | `npm run dev` funciona |
 | **1 · Shell** | BottomNav 3 tabs, AppContext (auth/carrito/favoritos), popup-history heredado, i18n español de componentes | Navegas entre 3 pestañas, modales en español |
 | **2 · Supabase** | Migraciones SQL (schema + RLS: `bisnes`, `products`, `orders`, `favorites`, `reviews`, `coupons`, `notifications`), clientes, seed (categorías, bisnes demo), auth email+Google. **2b · Catálogo**: volcado de los 26 productos MD → `products` + Storage (`product-images`), `lib/products.js` lee de Supabase, borrado de `content/products/` | Usuarios se registran, datos seed visibles, catálogo en DB |
-| **3 · Home** | BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection | Feed completo con infinite scroll |
+| **3 · Home** | BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection · ✅ **3 · Home (base):** feed en `/` con los 5 componentes, datos desde Supabase (`categories` + `bisnes` + rating de `reviews`), banners desde `store-config.json`, carruseles, modales reutilizados (ProductModal/Cart/Promo/Offer/QuickBuy), infinite scroll en RecommendationsFeed, categorías enlazan a `/tienda?category=` | Feed completo con infinite scroll |
 | **4 · Explorar** | GlobalSearch autocomplete, filtros, tendencias, mapa de Bisnes | Búsquedas funcionales contra full-text |
 | **5 · Tienda** | `/b/[handle]` = CatalogContainer parametrizado + tema + Seguir + favoritos síncronos + chip de calificación promedio (reviews) | Cada Bisne tiene su tienda personalizada |
 | **6 · Pedidos** | Carrito global + checkout secuencial por Bisne (selector multi-tienda), `orders` en DB + stock real | Carrito agrupado con logos; checkout registra y confirma por Bisne |
@@ -434,7 +434,7 @@ elBisne/
 ├── app/
 │   ├── layout.js                   RootLayout (es, theme, BottomNav, AuthProvider)
 │   ├── globals.css                 Design system elBisne (CSS variables + dark mode)
-│   ├── page.js                     TAB 1: Inicio/Feed
+│   ├── page.js                     TAB 1: Inicio/Feed (HomeFeed + feed components)
 │   ├── explorar/page.js            TAB 2: Explorar
 │   ├── perfil/page.js              TAB 3: Mi Perfil
 │   ├── auth/page.js                Login / Registro
@@ -464,6 +464,12 @@ elBisne/
 │   │   ├── RecommendationsFeed.jsx
 │   │   ├── CategoriesCarousel.jsx
 │   │   └── OffersSection.jsx
+│   ├── feed/
+│   │   ├── BannerSlider.jsx        Carousel de banners (store-config promoBanners/promoLinks)
+│   │   ├── BusinessesNearby.jsx    Tarjetas de bisnes (rating + nº productos)
+│   │   ├── RecommendationsFeed.jsx Grid productos con infinite scroll (24 en 24)
+│   │   ├── CategoriesCarousel.jsx  Chips de categorías → /tienda?category=
+│   │   └── OffersSection.jsx       Ofertas Flash (grid + Ver todas → OfferModal)
 │   ├── explore/
 │   │   ├── GlobalSearch.jsx
 │   │   ├── FiltersPanel.jsx
@@ -516,6 +522,7 @@ elBisne/
 │   │   ├── server.js               Server client (cookies)
 │   │   └── data.js                 Cliente de lectura pública (SSG/ISR, sin cookies)
 │   ├── products.js                 REESCRITO (lectura desde Supabase: products + categories)
+│   ├── feed.js                     NUEVO (categorías + bisnes con rating/productos para el Home)
 │   ├── messaging.js                REUTILIZAR (número del vendedor)
 │   ├── popup-history.js            REUTILIZAR
 │   ├── scroll-lock.js              REUTILIZAR
@@ -545,5 +552,5 @@ elBisne/
 
 1. ✅ Fase 0, 1 y 2 completadas (base, shell, Supabase, auth email). Faltan para cerrar Fase 2: Google Sign-In (dashboard + OAuth Client) y rotación del PAT/secret expuestos en chat
 2. ✅ Fase 2b: catálogo en Supabase (26 productos, Storage `product-images`, `lib/products.js` desde DB)
-3. Fase 3 · Home: BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection
+3. ✅ Fase 3 (base): feed `/` con BannerSlider + CategoriesCarousel + BisnesNearby + OffersSection + RecommendationsFeed (infinite scroll), datos de Supabase (`lib/feed.js`), banners de `store-config.json`, categorías → `/tienda?category=`, modales reutilizados. Pendiente fino: contadores de bisnes, seguir bisnes desde feed
 4. Continuar con fases 4-8 según el roadmap

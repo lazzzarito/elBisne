@@ -20,7 +20,7 @@ const CustomerInfoModal = dynamic(() => import("@/components/CustomerInfoModal")
 const LegalInfoModal = dynamic(() => import("@/components/LegalInfoModal"), { ssr: false, loading: () => null });
 const FavoritesModal = dynamic(() => import("@/components/FavoritesModal"), { ssr: false, loading: () => null });
 
-export default function CatalogContainer({ initialProducts, storeConfig }) {
+export default function CatalogContainer({ initialProducts, storeConfig, initialCategory = "all" }) {
   const {
     isClient,
     cartItems,
@@ -59,7 +59,9 @@ export default function CatalogContainer({ initialProducts, storeConfig }) {
   }, [initialProducts]);
 
   const scrollInProgressRef = useRef(false);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeCategory, setActiveCategory] = useState(
+    initialCategory && categories.includes(initialCategory) ? initialCategory : "all"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("featured");
 
