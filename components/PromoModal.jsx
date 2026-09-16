@@ -44,7 +44,7 @@ export default function PromoModal({ promo, products, onClose, onAddToCart, onOp
           <div className="store-info-body" style={{ paddingBottom: "1.5rem" }}>
             {products.length === 0 ? (
               <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textAlign: "center", padding: "1rem 0" }}>
-                No products in this promotion yet.
+                Aún no hay productos en esta promoción.
               </p>
             ) : (
               <div className="favorites-masonry-wrap">

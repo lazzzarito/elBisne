@@ -117,7 +117,7 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
   };
 
   const handleShare = async () => {
-    const text = `Check this out: ${name} - $${activePrice.toFixed(2)}`;
+    const text = `¡Mira esto!: ${name} - $${activePrice.toFixed(2)}`;
     const url = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
     try { await navigator.clipboard.writeText(url); } catch (e) {}
     if (navigator.share) {

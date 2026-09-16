@@ -270,17 +270,17 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
         {promoBanners[0] && (
           <div className="promo-grid">
             <div className="promo-grid-landscape" onClick={() => handlePromoClick(0)} style={{ cursor: "pointer" }}>
-              <Image src={promoBanners[0]} alt={storeConfig.promoLinks?.[0]?.title || "Promotion"} fill className="promo-grid-img" sizes="(max-width: 768px) 100vw, 50vw" priority />
+              <Image src={promoBanners[0]} alt={storeConfig.promoLinks?.[0]?.title || "Promoción"} fill className="promo-grid-img" sizes="(max-width: 768px) 100vw, 50vw" priority />
             </div>
             <div className="promo-grid-squares">
               {promoBanners[1] && (
                 <div className="promo-grid-square" onClick={() => handlePromoClick(1)} style={{ cursor: "pointer" }}>
-                  <Image src={promoBanners[1]} alt={storeConfig.promoLinks?.[1]?.title || "Promotion"} fill className="promo-grid-img" sizes="(max-width: 768px) 50vw, 25vw" priority />
+                  <Image src={promoBanners[1]} alt={storeConfig.promoLinks?.[1]?.title || "Promoción"} fill className="promo-grid-img" sizes="(max-width: 768px) 50vw, 25vw" priority />
                 </div>
               )}
               {promoBanners[2] && (
                 <div className="promo-grid-square" onClick={() => handlePromoClick(2)} style={{ cursor: "pointer" }}>
-                  <Image src={promoBanners[2]} alt={storeConfig.promoLinks?.[2]?.title || "Promotion"} fill className="promo-grid-img" sizes="(max-width: 768px) 50vw, 25vw" priority />
+                  <Image src={promoBanners[2]} alt={storeConfig.promoLinks?.[2]?.title || "Promoción"} fill className="promo-grid-img" sizes="(max-width: 768px) 50vw, 25vw" priority />
                 </div>
               )}
             </div>
@@ -540,7 +540,7 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
           <div className="footer-map-frame">
             <iframe
               title="Ubicación de la tienda"
-              src={storeConfig.mapEmbedUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3593.2315394774677!2d-80.19178818465261!3d25.76167978363209!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88d9b4a1b1b1b1b1%3A0x1b1b1b1b1b1b1b1b!2sMiami%2C%20FL%2C%20USA!5e0!3m2!1sen!2sus!4v1710000000000"}
+              src={storeConfig.mapEmbedUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.792721894149!2d-74.09351018835026!3d4.7114167424507595!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f9bfd2da34b9b%3A0x239d635520a33914!2sBogot%C3%A1%2C%20Colombia!5e0!3m2!1ses!2sco!4v1710000000000"}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               aria-hidden="false"

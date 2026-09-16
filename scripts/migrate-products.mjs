@@ -4,7 +4,7 @@
 // Requiere migración 002 aplicada y Supabase configurado en .env.local.
 // Uso: node scripts/migrate-products.mjs
 // ════════════════════════════════════════════════════════════════════
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import matter from "gray-matter";
 import { marked } from "marked";
@@ -28,6 +28,12 @@ if (!URL || !SERVICE) {
 const BUCKET = "product-images";
 const PUBLIC_BASE = `${URL}/storage/v1/object/public/${BUCKET}`;
 const PRODUCTS_DIR = resolve(process.cwd(), "content", "products");
+
+if (!existsSync(PRODUCTS_DIR)) {
+  console.error(`El corpus content/products/*.md ya no existe (catalogó vivo en Supabase).`);
+  console.error("Los productos se insertan directamente en Supabase; este script queda obsoleto.");
+  process.exit(1);
+}
 
 // Categoría (nombre MD) → handle del bisne dueño
 const CATEGORY_TO_HANDLE = {

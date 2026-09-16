@@ -10,7 +10,7 @@ import Icon from "@/components/Icon";
 
 const CUSTOMER_KEY = "elbisne_customer";
 
-const defaultCustomer = () => {
+const defaultCustomer = (storeConfig) => {
   if (typeof window !== "undefined") {
     try {
       const stored = localStorage.getItem(CUSTOMER_KEY);
@@ -23,7 +23,7 @@ const defaultCustomer = () => {
 };
 
 export default function QuickBuyModal({ product, onClose, onOrderComplete, storeConfig, onQtyChange }) {
-  const [customer, setCustomer] = useState(defaultCustomer);
+  const [customer, setCustomer] = useState(() => defaultCustomer(storeConfig));
   const [confirmed, setConfirmed] = useState(false);
   const [confirmedItem, setConfirmedItem] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -350,7 +350,7 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
-              Back to store
+              Volver a la tienda
             </button>
           </div>
         ) : (

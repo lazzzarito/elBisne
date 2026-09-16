@@ -14,12 +14,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const product = await getProductById(params.id);
-  if (!product) return { title: "Product Not Found" };
+  if (!product) return { title: "Producto no encontrado" };
 
   const storeConfig = getStoreConfig();
-  const siteName = storeConfig.name || "elBisne Demo Store";
+  const siteName = storeConfig.name || "elBisne";
   const title = product.seoTitle || `${product.name} — ${siteName}`;
-  const description = product.seoDescription || product.description || `Shop ${product.name} online.`;
+  const description = product.seoDescription || product.description || `Compra ${product.name} en línea.`;
   const image = product.image || "/images/placeholder.svg";
   const url = `${baseUrl}/product/${params.id}`;
 

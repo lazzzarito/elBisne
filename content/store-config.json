@@ -4,7 +4,7 @@
   "whatsappNumber": "+573001234567",
   "logoUrl": "/images/logo.webp",
   "currency": {
-    "code": "USD",
+    "code": "COP",
     "symbol": "$"
   },
   "promoBanners": [
@@ -44,7 +44,6 @@
   "delivery": {
     "mode": "both"
   },
-  "donationUrl": "https://tppay.me/mquz2zh8",
   "messaging": {
     "defaultChannel": "whatsapp",
     "channels": {
@@ -63,10 +62,5 @@
         "enabled": false
       }
     }
-  },
-  "googleSheets": {
-    "sheetId": "",
-    "apiKey": "",
-    "range": "Sheet1!A:Z"
   }
 }
