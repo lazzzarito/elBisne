@@ -1,10 +1,30 @@
-export default function Explorar() {
+import { getProducts, getStoreConfig } from "@/lib/products";
+import { getCategories, getBisnes } from "@/lib/feed";
+import ExplorarPage from "./ExplorarPage";
+
+export const revalidate = 60;
+
+export async function generateMetadata() {
+  return {
+    title: "Explorar | elBisne",
+    description: "Busca productos, explora tendencias y colecciones, y descubre bisnes cerca de ti.",
+  };
+}
+
+export default async function Explorar() {
+  const [products, storeConfig, categories, bisnes] = await Promise.all([
+    getProducts(),
+    getStoreConfig(),
+    getCategories(),
+    getBisnes(),
+  ]);
+
   return (
-    <main className="placeholder-page" id="main-content">
-      <h1>Explorar</h1>
-      <p style={{ marginTop: "1rem", color: "var(--text-secondary)" }}>
-        Búsqueda global, filtros y tendencias. <em>Próximamente.</em>
-      </p>
-    </main>
+    <ExplorarPage
+      initialProducts={products}
+      storeConfig={storeConfig}
+      categories={categories}
+      bisnes={bisnes}
+    />
   );
 }

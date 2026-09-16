@@ -8,15 +8,15 @@ Despliegue: Vercel. Repositorio en GitHub y demo pública en https://elbisne.ver
 
 ## Stack técnico
 
-| Capa | Tecnología |
-|---|---|
-| Frontend | Next.js 16 (App Router) + React 19 |
-| Backend | Supabase (Postgres, Auth, Storage, Realtime) |
-| Estilo | CSS custom properties + glassmorphism + dark mode automático |
-| Animaciones | Framer Motion |
-| Pedidos MVP | Deep-links a WhatsApp/Telegram/Email (`wa.me/`, `t.me/`, `mailto:`) con mensaje preformateado (sin SMS) |
-| Despliegue | Vercel (auto-detecta Next.js) |
-| Base del template | Fork de [Whatalog](https://github.com/lazzzarito/Whatalog) — catálogo multi-canal |
+| Capa              | Tecnología                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| Frontend          | Next.js 16 (App Router) + React 19                                                                            |
+| Backend           | Supabase (Postgres, Auth, Storage, Realtime)                                                                  |
+| Estilo            | CSS custom properties + glassmorphism + dark mode automático                                                 |
+| Animaciones       | Framer Motion                                                                                                 |
+| Pedidos MVP       | Deep-links a WhatsApp/Telegram/Email (`wa.me/`, `t.me/`, `mailto:`) con mensaje preformateado (sin SMS) |
+| Despliegue        | Vercel (auto-detecta Next.js)                                                                                 |
+| Base del template | Fork de[Whatalog](https://github.com/lazzzarito/Whatalog) — catálogo multi-canal                             |
 
 ---
 
@@ -245,19 +245,19 @@ Es el template Whatalog parametrizado:
 
 Cada tienda puede personalizar:
 
-| Elemento | Control |
-|---|---|
-| Color accent | Color picker → `theme.cssVariables.accent` |
-| Color de fondo | Color picker → `theme.cssVariables.bg` |
-| Color de texto | Color picker → `theme.cssVariables.text` |
-| Border radius | Slider → `theme.radiusScale` |
-| Fuente | Selector → `theme.fontFamily` |
-| Logo circular | Upload a Supabase Storage → `bisnes.logo_url` |
-| Portada (cover) | Upload a Supabase Storage → `bisnes.cover_url` |
-| Slogan | Texto libre → `bisnes.slogan` |
-| Columnas masonry | Selector 2/3/4 → `layout.masonryColumns` |
-| Mostrar ofertas | Toggle → `layout.showOffers` |
-| Mostrar mapa | Toggle → `layout.showMap` |
+| Elemento         | Control                                          |
+| ---------------- | ------------------------------------------------ |
+| Color accent     | Color picker →`theme.cssVariables.accent`     |
+| Color de fondo   | Color picker →`theme.cssVariables.bg`         |
+| Color de texto   | Color picker →`theme.cssVariables.text`       |
+| Border radius    | Slider →`theme.radiusScale`                   |
+| Fuente           | Selector →`theme.fontFamily`                  |
+| Logo circular    | Upload a Supabase Storage →`bisnes.logo_url`  |
+| Portada (cover)  | Upload a Supabase Storage →`bisnes.cover_url` |
+| Slogan           | Texto libre →`bisnes.slogan`                  |
+| Columnas masonry | Selector 2/3/4 →`layout.masonryColumns`       |
+| Mostrar ofertas  | Toggle →`layout.showOffers`                   |
+| Mostrar mapa     | Toggle →`layout.showMap`                      |
 
 Las CSS variables se inyectan como `<style>` **solo en la página del Bisne** (`/b/[handle]`), no afectan al marketplace.
 
@@ -294,11 +294,13 @@ Las CSS variables se inyectan como `<style>` **solo en la página del Bisne** (`
 ## Página de Mi Perfil (`/perfil`)
 
 ### Como usuario:
+
 - Feed personal con productos guardados (`favorites`) y actividad
 - Ajustes de privacidad y notificaciones
 - Botón **"Activa tu tienda"** (si aún no tiene Bisne)
 
 ### Como Bisne (tiene tienda activa):
+
 - Resumen rápido de su tienda (vistas, pedidos, productos)
 - Enlace directo a `/panel` y a su tienda pública `/b/[handle]`
 
@@ -308,13 +310,13 @@ Las CSS variables se inyectan como `<style>` **solo en la página del Bisne** (`
 
 Protegido, solo el dueño del Bisne accede.
 
-| Sección | Contenido |
-|---|---|
-| **Productos** | CRUD completo: crear, editar, borrar, reordenar (drag & drop). `OptionEditor` para variantes (talla/color/precio), `AttributeEditor` para atributos (material/peso/garantía). |
-| **Pedidos** | Lista de pedidos recibidos, buscar/filtrar, cambiar estado (`pending → confirmed → shipped → delivered`). Items, total, método de pago, canal. |
-| **Estadísticas** | Total productos, total pedidos, ingresos totales, low stock alerts, top productos vendidos |
-| **Apariencia** | ThemeEditor: color pickers (accent/fondo/texto/radio) + fuente + logo/portada/slogan upload + disposición del catálogo (columnas, ofertas on/off, mapa on/off). Preview en vivo. |
-| **Verificación** | Estado de solicitud, botón "Solicitar verificación" → `verification_requests` |
+| Sección                | Contenido                                                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Productos**     | CRUD completo: crear, editar, borrar, reordenar (drag & drop).`OptionEditor` para variantes (talla/color/precio), `AttributeEditor` para atributos (material/peso/garantía).  |
+| **Pedidos**       | Lista de pedidos recibidos, buscar/filtrar, cambiar estado (`pending → confirmed → shipped → delivered`). Items, total, método de pago, canal.                               |
+| **Estadísticas** | Total productos, total pedidos, ingresos totales, low stock alerts, top productos vendidos                                                                                         |
+| **Apariencia**    | ThemeEditor: color pickers (accent/fondo/texto/radio) + fuente + logo/portada/slogan upload + disposición del catálogo (columnas, ofertas on/off, mapa on/off). Preview en vivo. |
+| **Verificación** | Estado de solicitud, botón "Solicitar verificación" →`verification_requests`                                                                                                  |
 
 ---
 
@@ -411,19 +413,19 @@ Heredada del template:
 
 ## Fases de implementación
 
-| Fase | Alcance | Resultado |
-|---|---|---|
-| **0 · Base** | Copiar template a raíz, instalar deps, env de Supabase, identidad elBisne, textos en español | `npm run dev` funciona |
-| **1 · Shell** | BottomNav 3 tabs, AppContext (auth/carrito/favoritos), popup-history heredado, i18n español de componentes | Navegas entre 3 pestañas, modales en español |
-| **2 · Supabase** | Migraciones SQL (schema + RLS: `bisnes`, `products`, `orders`, `favorites`, `reviews`, `coupons`, `notifications`), clientes, seed (categorías, bisnes demo), auth email+Google. **2b · Catálogo**: volcado de los 26 productos MD → `products` + Storage (`product-images`), `lib/products.js` lee de Supabase, borrado de `content/products/` | Usuarios se registran, datos seed visibles, catálogo en DB |
-| **3 · Home** | BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection · ✅ **3 · Home (base):** feed en `/` con los 5 componentes, datos desde Supabase (`categories` + `bisnes` + rating de `reviews`), banners desde `store-config.json`, carruseles, modales reutilizados (ProductModal/Cart/Promo/Offer/QuickBuy), infinite scroll en RecommendationsFeed, categorías enlazan a `/tienda?category=` | Feed completo con infinite scroll |
-| **4 · Explorar** | GlobalSearch autocomplete, filtros, tendencias, mapa de Bisnes | Búsquedas funcionales contra full-text |
-| **5 · Tienda** | `/b/[handle]` = CatalogContainer parametrizado + tema + Seguir + favoritos síncronos + chip de calificación promedio (reviews) | Cada Bisne tiene su tienda personalizada |
-| **6 · Pedidos** | Carrito global + checkout secuencial por Bisne (selector multi-tienda), `orders` en DB + stock real | Carrito agrupado con logos; checkout registra y confirma por Bisne |
-| **7 · Panel** | CRUD productos, pedidos, estadísticas, ThemeEditor, solicitud verificación | Vendedor gestiona su tienda |
-| **8 · Confianza** | Reseñas 1-5⭐ + comentario (solo pedidos confirmados, RLS), cupones por Bisne, tracking público `/pedido/[id]` | Compradores dejan reseñas y siguen sus pedidos |
-| **9 · Notificaciones + Chat** | Centro de notificaciones (nuevo pedido, seguidor) con Realtime + badge, chat comprador↔vendedor in-app (`messages`) | Vendedor y comprador se comunican dentro de la app |
-| **10 · Admin + Moderación** | `/admin` moderación verificación + reportes/suspensiones, PWA/SEO/sitemap extendido, despliegue Vercel | MVP completo en producción |
+| Fase                                 | Alcance                                                                                                                                                                                                                                                                                                                                                                                                                                  | Resultado                                                          |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **0 · Base**                  | Copiar template a raíz, instalar deps, env de Supabase, identidad elBisne, textos en español                                                                                                                                                                                                                                                                                                                                           | `npm run dev` funciona                                           |
+| **1 · Shell**                 | BottomNav 3 tabs, AppContext (auth/carrito/favoritos), popup-history heredado, i18n español de componentes                                                                                                                                                                                                                                                                                                                              | Navegas entre 3 pestañas, modales en español                     |
+| **2 · Supabase**              | Migraciones SQL (schema + RLS:`bisnes`, `products`, `orders`, `favorites`, `reviews`, `coupons`, `notifications`), clientes, seed (categorías, bisnes demo), auth email+Google. **2b · Catálogo**: volcado de los 26 productos MD → `products` + Storage (`product-images`), `lib/products.js` lee de Supabase, borrado de `content/products/`                                                           | Usuarios se registran, datos seed visibles, catálogo en DB        |
+| **3 · Home**                  | BannerSlider, BisnesNearby, RecommendationsFeed, CategoriesCarousel, OffersSection · ✅**3 · Home (base):** feed en `/` con los 5 componentes, datos desde Supabase (`categories` + `bisnes` + rating de `reviews`), banners desde `store-config.json`, carruseles, modales reutilizados (ProductModal/Cart/Promo/Offer/QuickBuy), infinite scroll en RecommendationsFeed, categorías enlazan a `/tienda?category=` | Feed completo con infinite scroll                                  |
+| **4 · Explorar** | GlobalSearch autocomplete (productos+bisnes, tiempo real), búsquedas frecuentes (localStorage), filtros (categoría, precio máx, ofertas, orden), tendencias (soldMap) + colecciones (promoLinks), mapa (embed) + lista de Bisnes · ✅ **4 · Explorar (base):** `/explorar` con todo lo anterior; búsqueda local en cliente sobre catálogo cargado | Búsquedas funcionales en cliente (26 productos) |
+| **5 · Tienda**                | `/b/[handle]` = CatalogContainer parametrizado + tema + Seguir + favoritos síncronos + chip de calificación promedio (reviews)                                                                                                                                                                                                                                                                                                       | Cada Bisne tiene su tienda personalizada                           |
+| **6 · Pedidos**               | Carrito global + checkout secuencial por Bisne (selector multi-tienda),`orders` en DB + stock real                                                                                                                                                                                                                                                                                                                                     | Carrito agrupado con logos; checkout registra y confirma por Bisne |
+| **7 · Panel**                 | CRUD productos, pedidos, estadísticas, ThemeEditor, solicitud verificación                                                                                                                                                                                                                                                                                                                                                             | Vendedor gestiona su tienda                                        |
+| **8 · Confianza**             | Reseñas 1-5⭐ + comentario (solo pedidos confirmados, RLS), cupones por Bisne, tracking público`/pedido/[id]`                                                                                                                                                                                                                                                                                                                        | Compradores dejan reseñas y siguen sus pedidos                    |
+| **9 · Notificaciones + Chat** | Centro de notificaciones (nuevo pedido, seguidor) con Realtime + badge, chat comprador↔vendedor in-app (`messages`)                                                                                                                                                                                                                                                                                                                   | Vendedor y comprador se comunican dentro de la app                 |
+| **10 · Admin + Moderación**  | `/admin` moderación verificación + reportes/suspensiones, PWA/SEO/sitemap extendido, despliegue Vercel                                                                                                                                                                                                                                                                                                                               | MVP completo en producción                                        |
 
 ---
 
@@ -435,7 +437,13 @@ elBisne/
 │   ├── layout.js                   RootLayout (es, theme, BottomNav, AuthProvider)
 │   ├── globals.css                 Design system elBisne (CSS variables + dark mode)
 │   ├── page.js                     TAB 1: Inicio/Feed (HomeFeed + feed components)
-│   ├── explorar/page.js            TAB 2: Explorar
+│   ├── explorar/                   TAB 2: Explorar
+│   │   ├── page.js                 ✅ Server: carga products/categories/bisnes/storeConfig
+│   │   ├── ExplorarPage.jsx        ✅ Orquestador (búsqueda + filtros + modales)
+│   │   ├── GlobalSearch.jsx        ✅ Autocomplete + búsquedas frecuentes
+│   │   ├── ExploreFilters.jsx      ✅ Categoría, precio máx, ofertas, orden
+│   │   ├── TrendsSection.jsx       ✅ Tendencias (soldMap) + colecciones (promoLinks)
+│   │   └── MapSection.jsx          ✅ Mapa embed + lista de Bisnes
 │   ├── perfil/page.js              TAB 3: Mi Perfil
 │   ├── auth/page.js                Login / Registro
 │   ├── b/[handle]/page.js          Tienda pública del Bisne (SEO + tema)
@@ -553,4 +561,4 @@ elBisne/
 1. ✅ Fase 0, 1 y 2 completadas (base, shell, Supabase, auth email). Faltan para cerrar Fase 2: Google Sign-In (dashboard + OAuth Client) y rotación del PAT/secret expuestos en chat
 2. ✅ Fase 2b: catálogo en Supabase (26 productos, Storage `product-images`, `lib/products.js` desde DB)
 3. ✅ Fase 3 (base): feed `/` con BannerSlider + CategoriesCarousel + BisnesNearby + OffersSection + RecommendationsFeed (infinite scroll), datos de Supabase (`lib/feed.js`), banners de `store-config.json`, categorías → `/tienda?category=`, modales reutilizados. Pendiente fino: contadores de bisnes, seguir bisnes desde feed
-4. Continuar con fases 4-8 según el roadmap
+4. ✅ Fase 4 (base): `/explorar` con GlobalSearch (autocomplete productos+bisnes + búsquedas frecuentes en localStorage), filtros (categoría, precio máx, ofertas, orden), tendencias (soldMap) + colecciones (promoLinks), mapa embed + lista de Bisnes. Pendiente fino: full-text server-side (pg_trgm ya habilitado), radio km (requiere lat/lng en `bisnes`)
