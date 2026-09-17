@@ -1,6 +1,6 @@
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
-import BottomNav from "@/components/navigation/BottomNav";
+import TopNav from "@/components/navigation/TopNav";
 import ToastNotification from "@/components/ToastNotification";
 import Preloader from "@/components/Preloader";
 import { Inter } from "next/font/google";
@@ -40,8 +40,8 @@ export default function RootLayout({ children }) {
       <body>
         <a href="#main-content" className="skip-to-content">Saltar al contenido</a>
         <AppProvider>
+          <TopNav />
           <Preloader>{children}</Preloader>
-          <BottomNav />
           <ToastNotification />
         </AppProvider>
       </body>

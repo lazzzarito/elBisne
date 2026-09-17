@@ -6,13 +6,22 @@ import { lockBodyScroll } from "@/lib/scroll-lock";
 import { useHistoryPopup } from "@/lib/use-history-popup";
 import { useFocusTrap } from "@/lib/use-focus-trap";
 
-export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onQuickBuy, productQty = 1, onQtyChange, isFavorited = false, onToggleFavorite }) {
+export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onQuickBuy, productQty: productQtyProp = 1, onQtyChange, isFavorited = false, onToggleFavorite }) {
   // ── Track active image index for gallery ──
   const [activeImage, setActiveImage] = useState(0);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showPlusBadge, setShowPlusBadge] = useState(false);
   const [lastAddedQty, setLastAddedQty] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const [internalQty, setInternalQty] = useState(1);
+
+  // Cantidad controlada (padre) o local si no se pasa onQtyChange
+  const isControlledQty = typeof onQtyChange === "function";
+  const productQty = isControlledQty ? productQtyProp : internalQty;
+  const handleQtyChange = (qty) => {
+    if (isControlledQty) onQtyChange(qty);
+    else setInternalQty(qty);
+  };
 
   // Reset derivado en render cuando cambia el producto (patrón oficial React)
   const [lastProduct, setLastProduct] = useState(product);
@@ -29,6 +38,7 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
       }
       setSelectedOptions(defaults);
       setActiveImage(0);
+      setInternalQty(1);
     }
   }
 
@@ -273,7 +283,7 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
               <div className={`btn-add-cart-wrap${addingToCart ? ' added' : ''}`}>
                 <div className="btn-add-cart-stepper">
                   <button
-                    onClick={(e) => { e.stopPropagation(); onQtyChange(Math.max(1, productQty - 1)); }}
+                    onClick={(e) => { e.stopPropagation(); handleQtyChange(Math.max(1, productQty - 1)); }}
                     aria-label="Disminuir cantidad"
                     disabled={productQty <= 1 || !canInteract}
                   >
@@ -283,7 +293,7 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
                   </button>
                   <span>{productQty}</span>
                   <button
-                    onClick={(e) => { e.stopPropagation(); onQtyChange(Math.min(maxQty, productQty + 1)); }}
+                    onClick={(e) => { e.stopPropagation(); handleQtyChange(Math.min(maxQty, productQty + 1)); }}
                     aria-label="Aumentar cantidad"
                     disabled={productQty >= maxQty || !canInteract}
                   >

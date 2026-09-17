@@ -35,7 +35,7 @@ elBisne parte del template Whatalog como base visual y de UX, adaptándolo a un 
 Cada Bisne tiene su propia tienda pública (`/b/[handle]`) que se muestra **igual que el template original**: header de tienda con logo, categorías y búsqueda, botón de carrito **global** (flotante), promo grid, flash offers, masonry de productos, ficha con mapa y contacto. Solo se añade alrededor:
 
 - **Barra de contexto del marketplace** arriba (breadcrumb: `elBisne › @handle`, enlace a Explorar)
-- **BottomNav** del marketplace abajo (Inicio · Explorar · Perfil)
+- Solo el header propio de la tienda (sin TopNav/BottomNav del marketplace)
 - **Botón Seguir** y contador de seguidores en la portada
 - **Tema personalizado** del Bisne (CSS variables inyectadas solo en su página)
 - **Pedidos registrados** en DB además de enviarse por WhatsApp
@@ -202,14 +202,16 @@ CREATE TABLE verification_requests (
 
 ## Navegación y diseño
 
-### BottomNav (barra inferior flotante — glassmorphism)
+### TopNav (menú superior tipo template — glassmorphism)
 
-Siempre visible excepto en auth y panel del vendedor:
+Barra fija arriba (logo + Inicio · Explorar · Perfil). Visible en las páginas del marketplace (`/`, `/explorar`, `/perfil`); las rutas con header propio (`/tienda`, `/b/[handle]`, `/product/[id]`, `/auth`) no lo muestran:
 
 ```
-   [🏠 Inicio]     [🧭 Explorar]     [👤 Perfil]
-     activo: color accent + microanimación de indicador
+   [logo elBisne]   [🏠 Inicio]   [🧭 Explorar]   [👤 Perfil]
+     activo: pill con color accent
 ```
+
+El botón flotante de carrito (`Cart.jsx` → `floating-cart-btn`) se mantiene en todas las páginas con catálogo.
 
 ### Design System
 
@@ -218,7 +220,7 @@ Heredado del template con recolores para identidad elBisne:
 - CSS custom properties (`--bg-primary`, `--accent-green`, etc.) con dark mode automático (`prefers-color-scheme: dark`)
 - Los Bisnes pueden personalizar sus propias variables vía `bisnes.theme`
 - Fuentes: Inter (self-hosted via `next/font`) + stack de sistema
-- Glassmorphism en headers, BottomNav, drawers
+- Glassmorphism en headers, TopNav, drawers
 - Modales tipo bottom-sheet con `framer-motion` + popup stack + focus trap
 
 ### Pantalla de bienvenida / Auth
@@ -434,7 +436,7 @@ Heredada del template:
 ```
 elBisne/
 ├── app/
-│   ├── layout.js                   RootLayout (es, theme, BottomNav, AuthProvider)
+│   ├── layout.js                   RootLayout (es, theme, TopNav, AuthProvider)
 │   ├── globals.css                 Design system elBisne (CSS variables + dark mode)
 │   ├── page.js                     TAB 1: Inicio/Feed (HomeFeed + feed components)
 │   ├── explorar/                   TAB 2: Explorar
@@ -466,7 +468,7 @@ elBisne/
 │   └── robots.js
 ├── components/
 │   ├── navigation/
-│   │   └── BottomNav.jsx           Barra inferior flotante 3 tabs
+│   │   ├── TopNav.jsx              Menú superior (logo + Inicio/Explorar/Perfil)
 │   ├── feed/
 │   │   ├── BannerSlider.jsx
 │   │   ├── BusinessesNearby.jsx
