@@ -540,7 +540,7 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
           <div className="footer-map-frame">
             <iframe
               title="Ubicación de la tienda"
-              src={storeConfig.mapEmbedUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.792721894149!2d-74.09351018835026!3d4.7114167424507595!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f9bfd2da34b9b%3A0x239d635520a33914!2sBogot%C3%A1%2C%20Colombia!5e0!3m2!1ses!2sco!4v1710000000000"}
+              src={storeConfig.mapEmbedUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3663.5!2d-82.366596!3d23.113592!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88e7bd4a7c4dc92d%3A0x4a5c1b1f35a0e3f1!2sLa%20Habana%2C%20Cuba!5e0!3m2!1ses!2scu!4v1710000000000"}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               aria-hidden="false"
