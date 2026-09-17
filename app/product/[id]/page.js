@@ -13,7 +13,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const product = await getProductById(params.id);
+  const { id } = await params;
+  const product = await getProductById(id);
   if (!product) return { title: "Producto no encontrado" };
 
   const storeConfig = getStoreConfig();
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }) {
   const title = product.seoTitle || `${product.name} — ${siteName}`;
   const description = product.seoDescription || product.description || `Compra ${product.name} en línea.`;
   const image = product.image || "/images/placeholder.svg";
-  const url = `${baseUrl}/product/${params.id}`;
+  const url = `${baseUrl}/product/${id}`;
 
   return {
     title,
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }) {
       description,
       url,
       siteName,
-      type: "product",
+      type: "website",
       images: [{ url: image, width: 1200, height: 1200, alt: product.name }],
     },
     twitter: {
@@ -45,7 +46,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ProductPage({ params }) {
-  const product = await getProductById(params.id);
+  const { id } = await params;
+  const product = await getProductById(id);
   const storeConfig = getStoreConfig();
 
   if (!product) {
