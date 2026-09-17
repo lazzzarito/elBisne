@@ -168,6 +168,10 @@ export default function StorePageClient({ bisne, initialProducts, storeConfig })
                   {bisne.hours}
                 </span>
               )}
+              <span className="store-hero-meta-item">
+                <Icon name="banknote" size={14} />
+                Precios en {storeConfig.currency?.code || "USD"} ({storeConfig.currency?.symbol || "$"})
+              </span>
               {bisne.address && (
                 <span className="business-card-address">
                   <Icon name="map-pin" size={12} />

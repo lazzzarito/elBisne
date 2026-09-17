@@ -50,6 +50,11 @@ export default async function StorePage({ params }) {
     logoUrl: bisne.logoUrl || baseStoreConfig.logoUrl,
     location: bisne.address || baseStoreConfig.location,
     whatsappNumber: bisne.phoneWhatsapp || baseStoreConfig.whatsappNumber,
+    currency: {
+      ...(baseStoreConfig.currency || {}),
+      code: bisne.currencyCode || baseStoreConfig.currency?.code || "USD",
+      symbol: bisne.currencySymbol || baseStoreConfig.currency?.symbol || "$",
+    },
     messaging: {
       defaultChannel: "whatsapp",
       channels: {

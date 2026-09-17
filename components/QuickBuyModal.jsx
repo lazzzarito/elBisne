@@ -263,7 +263,7 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
                   </div>
                   <div className="qfield">
                     <label className="qlabel">Teléfono *</label>
-                    <input className={`qinput${submitted && errors.phone ? " error" : ""}`} type="tel" placeholder="Ej. +57 300 123 4567" value={customer.phone} onChange={(e) => update("phone", e.target.value)} onBlur={() => blur("phone")} />
+                    <input className={`qinput${submitted && errors.phone ? " error" : ""}`} type="tel" placeholder="Ej. +53 5 123 4567" value={customer.phone} onChange={(e) => update("phone", e.target.value)} onBlur={() => blur("phone")} />
                     {submitted && errors.phone && <span className="qerror">{errors.phone}</span>}
                   </div>
                   {(() => {

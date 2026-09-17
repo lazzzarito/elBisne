@@ -107,7 +107,7 @@ export default function CustomerInfoModal({ storeConfig }) {
               </div>
               <div className="cinfo-field">
                 <label className="cinfo-label">Teléfono *</label>
-                <input className={`cinfo-input${errors.phone && showErrors ? " error" : ""}`} type="tel" placeholder="Ej. +57 300 123 4567" value={customer.phone} onChange={(e) => update("phone", e.target.value)} onBlur={() => blur("phone")} />
+                <input className={`cinfo-input${errors.phone && showErrors ? " error" : ""}`} type="tel" placeholder="Ej. +53 5 123 4567" value={customer.phone} onChange={(e) => update("phone", e.target.value)} onBlur={() => blur("phone")} />
                 {errors.phone && showErrors && <span className="cinfo-error">{errors.phone}</span>}
               </div>
               {(() => {

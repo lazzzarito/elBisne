@@ -311,7 +311,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
                 </div>
                 <div className="checkout-field">
                   <label className="checkout-label">Teléfono *</label>
-                  <input className={`checkout-input${submitted && errors.phone ? " error" : ""}`} type="tel" placeholder="Ej. +57 300 123 4567" value={customer.phone} onChange={(e) => update("phone", e.target.value)} onBlur={() => blur("phone")} />
+                  <input className={`checkout-input${submitted && errors.phone ? " error" : ""}`} type="tel" placeholder="Ej. +53 5 123 4567" value={customer.phone} onChange={(e) => update("phone", e.target.value)} onBlur={() => blur("phone")} />
                   {submitted && errors.phone && <span className="cerror">{errors.phone}</span>}
                 </div>
                 {(() => {
