@@ -5,6 +5,7 @@ import SafeImage from "@/components/SafeImage";
 import { lockBodyScroll } from "@/lib/scroll-lock";
 import { useHistoryPopup } from "@/lib/use-history-popup";
 import { getChannelUrl, getDefaultChannel, getEnabledChannels, buildOrderMessage, getDeliveryMode } from "@/lib/messaging";
+import { loadBisneIndex, buildBisneStoreConfig, createOrder } from "@/lib/orders";
 import ChannelSplitButton from "@/components/ChannelSplitButton";
 import Icon from "@/components/Icon";
 
@@ -33,7 +34,22 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
   const [selectedChannel, setSelectedChannel] = useState(
     () => typeof window !== "undefined" ? (localStorage.getItem("elbisne_channel") || getDefaultChannel(storeConfig)) : getDefaultChannel(storeConfig)
   );
+  const [orderStatus, setOrderStatus] = useState("idle"); // idle | saving | saved | error
+  const [orderError, setOrderError] = useState(null);
+  const [bisneInfo, setBisneInfo] = useState(null);
   const enabledChannels = getEnabledChannels(storeConfig);
+
+  // WhatsApp real del vendedor (si el producto pertenece a un bisne)
+  useEffect(() => {
+    if (!product?.bisneId) return;
+    let active = true;
+    loadBisneIndex().then((map) => {
+      if (active && map.has(product.bisneId)) setBisneInfo(map.get(product.bisneId));
+    });
+    return () => {
+      active = false;
+    };
+  }, [product?.bisneId]);
 
   const [lastProduct, setLastProduct] = useState(product);
 
@@ -117,22 +133,41 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
     });
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setSubmitted(true);
     if (hasErrors) return;
     localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customer));
     setConfirmedItem({ ...product, priceUSD: activePrice, originalPrice: activeOriginalPrice, image: activeImage, selectedOptions, quantity: qty });
 
-    const orderData = {
-      customer,
-      cartItems: [{ ...product, priceUSD: activePrice, selectedOptions, quantity: qty }],
-      totalUSD: activePrice * qty,
-    };
-    const message = buildOrderMessage(orderData, storeConfig);
-    const url = getChannelUrl(selectedChannel, storeConfig, message);
-    window.open(url, "_blank");
+    const items = [{ ...product, priceUSD: activePrice, selectedOptions, quantity: qty }];
+    const totalUSD = activePrice * qty;
+
+    // storeConfig con el WhatsApp real del Bisne (si el producto lo tiene)
+    const bisneStoreConfig = buildBisneStoreConfig(storeConfig, product.bisneId ? bisneInfo : null);
+
+    const orderData = { customer, cartItems: items, totalUSD };
+    const message = buildOrderMessage(orderData, bisneStoreConfig);
+    const url = getChannelUrl(selectedChannel, bisneStoreConfig, message);
+    if (url) window.open(url, "_blank", "noopener");
+
     setConfirmed(true);
     if (onOrderComplete) onOrderComplete();
+
+    // Registrar el pedido en DB (orders + decremento de stock vía RPC)
+    setOrderStatus("saving");
+    const result = await createOrder({
+      bisneId: product.bisneId || null,
+      items,
+      customer,
+      totalUSD,
+      channel: selectedChannel,
+    });
+    if (result.ok) {
+      setOrderStatus("saved");
+    } else {
+      setOrderStatus("error");
+      setOrderError(result.error);
+    }
   };
 
   const channelLabel = ({ whatsapp: "WhatsApp", telegram: "Telegram", email: "Email" })[selectedChannel] || "WhatsApp";
@@ -157,7 +192,16 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
                 <h2 className="quickbuy-title">¡Pedido Enviado!</h2>
-                <p className="quickbuy-subtitle">Tu pedido fue enviado por {channelLabel}.</p>
+                <p className="quickbuy-subtitle">
+                  Tu pedido fue enviado por {channelLabel}.
+                  {orderStatus === "saved" && " Quedó registrado en la tienda."}
+                </p>
+                {orderStatus === "error" && (
+                  <div className="quickbuy-order-warning">
+                    <Icon name="warning" size={13} />
+                    No pudimos registrarlo en línea ({orderError}), pero el vendedor lo recibió por {channelLabel}.
+                  </div>
+                )}
               </div>
 
               <div className="quickbuy-body">
@@ -214,7 +258,7 @@ export default function QuickBuyModal({ product, onClose, onOrderComplete, store
                       </svg>
                     </button>
                     <span>{qty}</span>
-                    <button onClick={() => { const v = Math.min(99, qty + 1); setQty(v); if (onQtyChange) onQtyChange(v); }} aria-label="Aumentar" disabled={qty >= 99}>
+                    <button onClick={() => { const v = Math.min(99, qty + 1); setQty(v); if (onQtyChange) onQtyChange(v); }} aria-label="Aumentar" disabled={qty >= Math.min(99, product?.stock != null && isFinite(product.stock) ? product.stock : 99)}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                         <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                       </svg>

@@ -13,6 +13,8 @@ export default function RecommendationsFeed({
   favoriteIds,
   onToggleFavorite,
   title = "Recomendaciones para ti",
+  showBisne = false,
+  bisneMap,
 }) {
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -64,6 +66,8 @@ export default function RecommendationsFeed({
             onToggleFavorite={onToggleFavorite}
             priority={i < 4}
             index={i}
+            showBisne={showBisne}
+            bisneInfo={bisneMap?.get(product.bisneId)}
           />
         ))}
       </MasonryGrid>

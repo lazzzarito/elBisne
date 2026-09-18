@@ -3,7 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import Icon from "@/components/Icon";
+import NotificationsBadge from "@/components/notifications/NotificationsBadge";
+import FollowedStoresModal from "@/components/FollowedStoresModal";
 
 const TABS = [
   { href: "/", label: "Inicio", icon: "home" },
@@ -15,6 +18,7 @@ const HIDE_PREFIXES = ["/auth", "/tienda", "/b/", "/product/"];
 
 export default function TopNav() {
   const pathname = usePathname();
+  const [showFollowed, setShowFollowed] = useState(false);
 
   if (HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
@@ -49,8 +53,20 @@ export default function TopNav() {
               <span>{tab.label}</span>
             </Link>
           ))}
+          <button
+            type="button"
+            className="top-nav-fav-btn"
+            onClick={() => setShowFollowed(true)}
+            aria-label="Tus tiendas seguidas"
+            title="Tus tiendas seguidas"
+          >
+            <Icon name="heart-outline" size={17} />
+          </button>
+          <NotificationsBadge />
         </nav>
       </div>
+
+      {showFollowed && <FollowedStoresModal onClose={() => setShowFollowed(false)} />}
     </header>
   );
 }

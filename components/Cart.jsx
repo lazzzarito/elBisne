@@ -6,6 +6,7 @@ import { lockBodyScroll } from "@/lib/scroll-lock";
 import { useHistoryPopup } from "@/lib/use-history-popup";
 import { useFocusTrap } from "@/lib/use-focus-trap";
 import { getChannelUrl, getDefaultChannel, getEnabledChannels, buildOrderMessage, getDeliveryMode } from "@/lib/messaging";
+import { loadBisneIndex, buildBisneStoreConfig, createOrder } from "@/lib/orders";
 import ChannelSplitButton from "@/components/ChannelSplitButton";
 import Icon from "@/components/Icon";
 
@@ -23,28 +24,79 @@ const defaultCustomer = (storeConfig) => {
   return { name: "", phone: "", delivery: d, address: "", payment: "", paymentOther: "" };
 };
 
-export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart, storeConfig, onOrderComplete, isFooterVisible, scrollToTop, onEditItem }) {
+const PAYMENT_OPTIONS = [
+  "Efectivo USD",
+  "Tarjeta de Crédito",
+  "Tarjeta de Débito",
+  "Zelle",
+  "PayPal",
+  "Venmo",
+  "Otro",
+];
+
+// ── Agrupar items del carrito por Bisne ─────────────────────────────────
+function groupByBisne(cartItems, bisneIndex) {
+  const groups = new Map();
+  cartItems.forEach((item) => {
+    const bisneId = item.bisneId || null;
+    if (!groups.has(bisneId)) {
+      const info = (bisneId && bisneIndex.get(bisneId)) || null;
+      groups.set(bisneId, {
+        bisneId,
+        name: info?.name || null,
+        handle: info?.handle || null,
+        items: [],
+      });
+    }
+    groups.get(bisneId).items.push(item);
+  });
+  // Bisnes con datos conocidos primero; sin bisne al final
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.bisneId === b.bisneId) return 0;
+    if (!a.bisneId) return 1;
+    if (!b.bisneId) return -1;
+    return (a.name || "").localeCompare(b.name || "");
+  });
+}
+
+export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveItems, onClearCart, storeConfig, onOrderComplete, isFooterVisible, scrollToTop, onEditItem }) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [showSummary, setShowSummary] = useState(false);
   const [customer, setCustomer] = useState(() => defaultCustomer(storeConfig));
   const [confirmed, setConfirmed] = useState(false);
-  const [confirmedItems, setConfirmedItems] = useState(null);
+  const [confirmedGroup, setConfirmedGroup] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [touched, setTouched] = useState({});
   const [selectedChannel, setSelectedChannel] = useState(
     () => typeof window !== "undefined" ? (localStorage.getItem("elbisne_channel") || getDefaultChannel(storeConfig)) : getDefaultChannel(storeConfig)
   );
+  const [bisneIndex, setBisneIndex] = useState(new Map());
+  const [selectedBisneId, setSelectedBisneId] = useState(null);
+  const [orderStatus, setOrderStatus] = useState("idle"); // idle | saving | saved | error
+  const [orderError, setOrderError] = useState(null);
   const enabledChannels = useMemo(() => getEnabledChannels(storeConfig), [storeConfig]);
   const prevOpen = useRef(isOpen);
+
+  // Índice de bisnes (público) para agrupar y contactar al vendedor real
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    loadBisneIndex().then((map) => {
+      if (active) setBisneIndex(map);
+    });
+    return () => { active = false; };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && !prevOpen.current) {
       setStep(1);
       setConfirmed(false);
-      setConfirmedItems(null);
+      setConfirmedGroup(null);
       setSubmitted(false);
       setTouched({});
+      setOrderStatus("idle");
+      setOrderError(null);
     }
     prevOpen.current = isOpen;
   }, [isOpen]);
@@ -58,8 +110,29 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
   useHistoryPopup(isOpen, () => setIsOpen(false));
   const cartRef = useFocusTrap(isOpen);
 
+  const groups = useMemo(() => groupByBisne(cartItems, bisneIndex), [cartItems, bisneIndex]);
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalUSD = cartItems.reduce((acc, item) => acc + item.priceUSD * item.quantity, 0);
+
+  // ── Checkout secuencial: se confirma un Bisne a la vez ──────────────────
+  // activeBisneId deriva de selectedBisneId con fallback automático al primer
+  // grupo (sin efecto: si el usuario elige otro, el estado lo cambia igual).
+  const activeBisneId = selectedBisneId !== null && groups.some((g) => g.bisneId === selectedBisneId)
+    ? selectedBisneId
+    : groups.length > 0
+      ? groups[0].bisneId
+      : null;
+  const activeGroup = groups.find((g) => g.bisneId === activeBisneId) || null;
+
+  const activeTotal = activeGroup
+    ? activeGroup.items.reduce((acc, item) => acc + item.priceUSD * item.quantity, 0)
+    : 0;
+  const remainingGroups = groups.filter((g) => g.bisneId !== activeBisneId);
+
+  // storeConfig real del Bisne activo (WhatsApp del vendedor). Se construye
+  // en cada render (barato: spread de un objeto pequeño).
+  const activeBisneInfo = activeGroup?.bisneId ? bisneIndex.get(activeGroup.bisneId) || null : null;
+  const activeStoreConfig = activeGroup ? buildBisneStoreConfig(storeConfig, activeBisneInfo) : storeConfig;
 
   const update = (field, value) => setCustomer((prev) => ({ ...prev, [field]: value }));
   const blur = (field) => setTouched((prev) => ({ ...prev, [field]: true }));
@@ -73,41 +146,56 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
 
   const hasErrors = Object.keys(errors).length > 0;
 
-  const PAYMENT_OPTIONS = [
-    "Efectivo USD",
-    "Tarjeta de Crédito",
-    "Tarjeta de Débito",
-    "Zelle",
-    "PayPal",
-    "Venmo",
-    "Otro",
-  ];
-
-  const getOrderUrl = () => {
-    const orderData = { customer, cartItems, totalUSD };
-    const message = buildOrderMessage(orderData, storeConfig);
-    return getChannelUrl(selectedChannel, storeConfig, message);
+  const getOrderUrl = (items, config, total) => {
+    const orderData = { customer, cartItems: items, totalUSD: total };
+    const message = buildOrderMessage(orderData, config);
+    return getChannelUrl(selectedChannel, config, message);
   };
 
   const channelLabel = ({ whatsapp: "WhatsApp", telegram: "Telegram", email: "Email" })[selectedChannel] || "WhatsApp";
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     setSubmitted(true);
-    if (hasErrors) return;
+    if (hasErrors || !activeGroup) return;
+
     localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customer));
-    setConfirmedItems(cartItems.map((item) => ({ ...item })));
+
+    // 1) Mensaje por el canal elegido (experiencia principal, no bloqueante)
+    const url = getOrderUrl(activeGroup.items, activeStoreConfig, activeTotal);
+    if (url) window.open(url, "_blank", "noopener");
+
+    // 2) Registrar el pedido en la DB (orders + decremento de stock vía RPC)
+    setOrderStatus("saving");
+    const result = await createOrder({
+      bisneId: activeGroup.bisneId,
+      items: activeGroup.items,
+      customer,
+      totalUSD: activeTotal,
+      channel: selectedChannel,
+    });
+
+    if (result.ok) {
+      setOrderStatus("saved");
+    } else {
+      setOrderStatus("error");
+      setOrderError(result.error);
+    }
+
+    // 3) UI de confirmación + vaciar solo los items de este Bisne
+    setConfirmedGroup(activeGroup);
     setConfirmed(true);
-    if (onOrderComplete) onOrderComplete();
-    setTimeout(() => onClearCart(), 300);
-    window.open(getOrderUrl(), "_blank");
+    if (onOrderComplete) onOrderComplete(activeGroup.items);
+    onRemoveItems?.(activeGroup.items.map((item) => item.id));
+
+    // El pedido del siguiente Bisne (si existe) se confirmará al reabrir el paso 2
   };
 
   const handleClose = () => {
     setIsOpen(false);
   };
 
-  const showingConfirm = confirmed && confirmedItems;
-  const itemsToShow = showingConfirm ? confirmedItems : [];
+  const showingConfirm = confirmed && confirmedGroup;
+  const itemsToShow = showingConfirm ? confirmedGroup.items : [];
 
   return (
     <>
@@ -121,7 +209,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
               <polyline points="18 15 12 9 6 15" />
             </svg>
           ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
@@ -159,7 +247,18 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
                 <h3>¡Pedido Enviado!</h3>
-                <p>Tu pedido fue enviado por {channelLabel}.<br />Te confirmaremos pronto.</p>
+                <p>
+                  {confirmedGroup.name ? `Tu pedido a ${confirmedGroup.name}` : "Tu pedido"} fue enviado por {channelLabel}.
+                  {orderStatus === "saved" && " Quedó registrado en la tienda."}
+                  <br />Te confirmaremos pronto.
+                </p>
+
+                {orderStatus === "error" && (
+                  <div className="cart-order-warning">
+                    <Icon name="warning" size={14} />
+                    No pudimos registrar tu pedido en línea ({orderError}). El vendedor lo recibió por {channelLabel}.
+                  </div>
+                )}
 
                 <div className="cart-confirmed-details">
                   <div className="cart-confirmed-section">
@@ -199,13 +298,37 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
               </div>
 
               <div className="cart-footer">
-                <button className="btn-back-store" onClick={handleClose}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                  </svg>
-                  Volver a la tienda
-                </button>
+                {remainingGroups.length > 0 ? (
+                  <button
+                    className="btn-checkout"
+                    onClick={() => {
+                      // Continuar con el siguiente Bisne
+                      setConfirmed(false);
+                      setConfirmedGroup(null);
+                      setSubmitted(false);
+                      setOrderStatus("idle");
+                      setOrderError(null);
+                      setSelectedBisneId(remainingGroups[0].bisneId);
+                      setStep(2);
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                    <span>Siguiente pedido ({remainingGroups.length} {remainingGroups.length === 1 ? "tienda" : "tiendas"})</span>
+                    <span className="btn-checkout-total">
+                      ${remainingGroups.reduce((s, g) => s + g.items.reduce((a, i) => a + i.priceUSD * i.quantity, 0), 0).toFixed(2)}
+                    </span>
+                  </button>
+                ) : (
+                  <button className="btn-back-store" onClick={handleClose}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="19" y1="12" x2="5" y2="12"></line>
+                      <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Volver a la tienda
+                  </button>
+                )}
               </div>
             </>
           ) : cartItems.length === 0 ? (
@@ -232,58 +355,117 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
           <div className="cart-step-animated" key={step}>
           {step === 1 ? (
             <>
-              {cartItems.map((item) => (
-                <div className="cart-item" key={item.id}>
-                  <div className="cart-item-image-wrapper" onClick={() => onEditItem?.(item)} style={{ cursor: "pointer" }}>
-                    <SafeImage src={item.image} alt={item.name} width={80} height={80} className="cart-item-image" />
-                  </div>
-                  <div className="cart-item-details">
-                    {item.category && <span className="cart-item-category">{item.category}</span>}
-                    <span className="cart-item-title" onClick={() => onEditItem?.(item)} style={{ cursor: "pointer" }}>{item.name}</span>
-                    {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "block", marginBottom: "0.2rem" }}>
-                        {Object.entries(item.selectedOptions).map(([k, v]) => `${k}: ${v}`).join(" | ")}
-                      </span>
-                    )}
-                    <span className="cart-item-price">${item.priceUSD.toFixed(2)}</span>
-                    <div className="cart-item-actions">
-                      <div className="cart-item-qty-controls">
-                        <button className="qty-btn" onClick={() => onUpdateQty(item.id, item.quantity - 1)} title="Disminuir cantidad">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                          </svg>
-                        </button>
-                        <span className="qty-value">{item.quantity}</span>
-                        <button className="qty-btn" onClick={() => onUpdateQty(item.id, item.quantity + 1)} title="Aumentar cantidad">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                          </svg>
-                        </button>
-                      </div>
-                      <button className="btn-remove-item" onClick={() => onRemoveItem(item.id)} title="Quitar producto">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
+              {groups.map((group) => {
+                const groupTotal = group.items.reduce((acc, item) => acc + item.priceUSD * item.quantity, 0);
+                return (
+                  <div className="cart-bisne-group" key={group.bisneId || "sin-bisne"}>
+                    <div className="cart-bisne-header">
+                      {group.handle ? (
+                        <a href={`/b/${group.handle}`} className="cart-bisne-name" onClick={(e) => { e.preventDefault(); window.location.href = `/b/${group.handle}`; }}>
+                          <Icon name="shopping-bag" size={13} />
+                          {group.name || "Tienda"}
+                        </a>
+                      ) : (
+                        <span className="cart-bisne-name">
+                          <Icon name="shopping-bag" size={13} />
+                          {group.name || "Productos del catálogo"}
+                        </span>
+                      )}
+                      <span className="cart-bisne-total">${groupTotal.toFixed(2)}</span>
                     </div>
+
+                    {group.items.map((item) => (
+                      <div className="cart-item" key={item.id}>
+                        <div className="cart-item-image-wrapper" onClick={() => onEditItem?.(item)} style={{ cursor: "pointer" }}>
+                          <SafeImage src={item.image} alt={item.name} width={80} height={80} className="cart-item-image" />
+                        </div>
+                        <div className="cart-item-details">
+                          {item.category && <span className="cart-item-category">{item.category}</span>}
+                          <span className="cart-item-title" onClick={() => onEditItem?.(item)} style={{ cursor: "pointer" }}>{item.name}</span>
+                          {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                            <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "block", marginBottom: "0.2rem" }}>
+                              {Object.entries(item.selectedOptions).map(([k, v]) => `${k}: ${v}`).join(" | ")}
+                            </span>
+                          )}
+                          <span className="cart-item-price">${item.priceUSD.toFixed(2)}</span>
+                          <div className="cart-item-actions">
+                            <div className="cart-item-qty-controls">
+                              <button className="qty-btn" onClick={() => onUpdateQty(item.id, item.quantity - 1)} title="Disminuir cantidad">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                              </button>
+                              <span className="qty-value">{item.quantity}</span>
+                              <button
+                                className="qty-btn"
+                                onClick={() => onUpdateQty(item.id, item.quantity + 1)}
+                                title="Aumentar cantidad"
+                                disabled={item.stock != null && isFinite(item.stock) && item.quantity >= item.stock}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                              </button>
+                            </div>
+                            <button className="btn-remove-item" onClick={() => onRemoveItem(item.id)} title="Quitar producto">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </>
           ) : (
             <>
+              {/* ── Selector multi-tienda (solo si hay varios Bisnes) ── */}
+              {groups.length > 1 && (
+                <div className="cart-multistore-picker">
+                  <p className="cart-multistore-label">
+                    Tienes productos de {groups.length} tiendas. Cada pedido se envía por separado a su tienda.
+                  </p>
+                  <div className="cart-multistore-options">
+                    {groups.map((group) => {
+                      const groupTotal = group.items.reduce((acc, item) => acc + item.priceUSD * item.quantity, 0);
+                      const isActive = group.bisneId === activeBisneId;
+                      return (
+                        <button
+                          key={group.bisneId || "sin-bisne"}
+                          type="button"
+                          className={`cart-multistore-option${isActive ? " active" : ""}`}
+                          onClick={() => setSelectedBisneId(group.bisneId)}
+                        >
+                          <span className="cart-multistore-name">
+                            <Icon name="shopping-bag" size={13} />
+                            {group.name || "Productos del catálogo"}
+                          </span>
+                          <span className="cart-multistore-meta">
+                            {group.items.reduce((a, i) => a + i.quantity, 0)} {group.items.reduce((a, i) => a + i.quantity, 0) === 1 ? "artículo" : "artículos"} · ${groupTotal.toFixed(2)}
+                          </span>
+                          {isActive && <span className="cart-multistore-check"><Icon name="check" size={12} /></span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="cart-order-summary">
                 <button className="cart-summary-toggle" onClick={() => setShowSummary(!showSummary)}>
-                  <span>Tus productos ({cartItems.length})</span>
+                  <span>Tus productos ({activeGroup ? activeGroup.items.length : cartItems.length})</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`summary-chevron${showSummary ? " open" : ""}`}>
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
                 {showSummary && (
                   <div className="cart-summary-items">
-                    {cartItems.map((item) => (
+                    {(activeGroup ? activeGroup.items : cartItems).map((item) => (
                       <div className="cart-summary-item" key={item.id}>
                         <div className="cart-summary-item-img">
                           <SafeImage src={item.image} alt={item.name} width={44} height={44} />
@@ -297,7 +479,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
                     ))}
                     <div className="cart-summary-total">
                       <span>Total</span>
-                      <span>${totalUSD.toFixed(2)}</span>
+                      <span>${(activeGroup ? activeTotal : totalUSD).toFixed(2)}</span>
                     </div>
                   </div>
                 )}
@@ -315,7 +497,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
                   {submitted && errors.phone && <span className="cerror">{errors.phone}</span>}
                 </div>
                 {(() => {
-                  const mode = getDeliveryMode(storeConfig);
+                  const mode = getDeliveryMode(activeStoreConfig);
                   if (mode === "none") return null;
                   const isDelivery = customer.delivery === "delivery";
                   return (
@@ -346,7 +528,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                                 <circle cx="12" cy="10" r="3" />
                               </svg>
-                              {storeConfig.location}
+                              {activeStoreConfig.location}
                             </p>
                           )}
                         </>
@@ -361,7 +543,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onClearCart
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                             <circle cx="12" cy="10" r="3" />
                           </svg>
-                          {storeConfig.location}
+                          {activeStoreConfig.location}
                         </p>
                       )}
                     </div>

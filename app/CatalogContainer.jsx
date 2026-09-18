@@ -11,6 +11,7 @@ import StoreInfoCard from "@/components/StoreInfoCard";
 import { useApp } from "@/context/AppContext";
 import { initPopupHistory } from "@/lib/popup-history";
 import { getChannelUrl, getDefaultChannel } from "@/lib/messaging";
+import { useBisneInfo } from "@/lib/use-bisne-info";
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
 const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: () => null });
 const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
@@ -20,19 +21,19 @@ const CustomerInfoModal = dynamic(() => import("@/components/CustomerInfoModal")
 const LegalInfoModal = dynamic(() => import("@/components/LegalInfoModal"), { ssr: false, loading: () => null });
 const FavoritesModal = dynamic(() => import("@/components/FavoritesModal"), { ssr: false, loading: () => null });
 
-export default function CatalogContainer({ initialProducts, storeConfig, initialCategory = "all" }) {
+export default function CatalogContainer({ initialProducts, storeConfig, initialCategory = "all", bisneId }) {
   const {
     isClient,
     cartItems,
     addToCart,
     updateQty,
     removeItem,
+    removeItems,
     clearCart,
     favoriteIds,
     toggleFavorite,
-    recordSale,
-    soldMap,
-    toEffectiveProduct,
+    handleOrderComplete,
+    withStock,
     showToast,
   } = useApp();
 
@@ -243,6 +244,9 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
 
   const visibleProducts = sortedProducts.slice(0, visibleLimit);
 
+  // Bisne dueño del producto abierto en el modal (para el header del modal)
+  const selectedBisneInfo = useBisneInfo(selectedProduct?.bisneId || bisneId);
+
   const promoProducts = useMemo(() => {
     if (!selectedPromo) return [];
     return initialProducts.filter((p) => p.promo === selectedPromo.target);
@@ -305,7 +309,7 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
               {offerProducts.slice(0, 8).map((product, i) => (
                 <ProductCard
                   key={product.id}
-                  product={toEffectiveProduct(product)}
+                  product={withStock(product)}
                   onAddToCart={handleAddToCart}
                   onOpenDetails={setSelectedProduct}
                   isFavorited={favoriteIds.includes(product.id)}
@@ -336,7 +340,7 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
               {visibleProducts.map((product, i) => (
                 <ProductCard
                   key={product.id}
-                  product={toEffectiveProduct(product)}
+                  product={withStock(product)}
                   onAddToCart={handleAddToCart}
                   onOpenDetails={setSelectedProduct}
                   isFavorited={favoriteIds.includes(product.id)}
@@ -385,21 +389,16 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
         cartItems={cartItems}
         onUpdateQty={updateQty}
         onRemoveItem={removeItem}
+        onRemoveItems={removeItems}
         onClearCart={clearCart}
         storeConfig={storeConfig}
-        onOrderComplete={() => {
-          cartItems.forEach((item) => recordSale(item.productId || item.id, item.quantity));
-        }}
+        onOrderComplete={handleOrderComplete}
         isFooterVisible={isFooterVisible}
         scrollToTop={scrollToTop}
-        onEditItem={(item) => {
-          const originalProduct = initialProducts.find(p => p.id === (item.productId || item.id.split("::")[0]));
-          if (originalProduct) setSelectedProduct(originalProduct);
-        }}
       />
 
       <ProductModal
-        product={toEffectiveProduct(selectedProduct)}
+        product={withStock(selectedProduct)}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
         storeConfig={storeConfig}
@@ -408,6 +407,7 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
         onQtyChange={handleQtyChange}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
+        bisneInfo={selectedBisneInfo}
       />
 
       {quickBuyProduct && (
@@ -415,10 +415,8 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
           product={quickBuyProduct}
           onClose={() => setQuickBuyProduct(null)}
           onOrderComplete={() => {
-            if (quickBuyProduct?.id) {
-              recordSale(quickBuyProduct.id, quickBuyProduct.quantity || 1);
-              clearProductQty(quickBuyProduct.id);
-            }
+            clearProductQty(quickBuyProduct.id);
+            handleOrderComplete();
             setSelectedProduct(null);
           }}
           storeConfig={storeConfig}

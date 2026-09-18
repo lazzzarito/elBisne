@@ -13,7 +13,7 @@ const SECTIONS = [
       <>
         <p>Este sitio usa solo <strong>cookies esenciales</strong> necesarias para el funcionamiento básico. Incluyen:</p>
         <ul>
-          <li><strong>localStorage</strong> — para conservar los productos del carrito (<code>elbisne_cart</code>), contadores de vendidos (<code>elbisne_sold</code>), información del cliente (<code>elbisne_customer</code>) y favoritos (<code>elbisne_favorites</code>). Todos los datos permanecen en tu navegador y nunca se envían a ningún servidor.</li>
+          <li><strong>localStorage</strong> — para conservar los productos del carrito (<code>elbisne_cart</code>), información del cliente (<code>elbisne_customer</code>) y favoritos (<code>elbisne_favorites</code>). Todos los datos permanecen en tu navegador y nunca se envían a ningún servidor.</li>
           <li><strong>Estado de sesión</strong> — gestión de estado de React para alternar la interfaz (modales, filtros, búsqueda). No se configuran cookies para este propósito.</li>
         </ul>
         <p>El iframe de Google Maps incrustado puede configurar sus propias cookies al interactuar con el mapa. Aplica la política de cookies de Google de forma independiente. No se usan cookies de publicidad, seguimiento ni analítica de terceros en este sitio.</p>

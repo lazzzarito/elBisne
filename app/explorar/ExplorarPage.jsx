@@ -9,6 +9,9 @@ import ExploreFilters from "./ExploreFilters";
 import TrendsSection from "./TrendsSection";
 import MapSection from "./MapSection";
 import { useApp } from "@/context/AppContext";
+import { useBisneInfo } from "@/lib/use-bisne-info";
+import { useEffect as useEffectAlias } from "react";
+import { loadBisneIndex } from "@/lib/orders";
 
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
 const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: () => null });
@@ -21,12 +24,13 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
     addToCart,
     updateQty,
     removeItem,
+    removeItems,
     clearCart,
     favoriteIds,
     toggleFavorite,
-    recordSale,
-    soldMap,
-    toEffectiveProduct,
+    handleOrderComplete,
+    withStock,
+    salesMap,
   } = useApp();
 
   const [query, setQuery] = useState("");
@@ -37,6 +41,19 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [quickBuyProduct, setQuickBuyProduct] = useState(null);
+  const selectedBisneInfo = useBisneInfo(selectedProduct?.bisneId);
+  const [bisneMap, setBisneMap] = useState(null);
+
+  // Índice de bisnes para el badge "vendido por" en cada card
+  useEffectAlias(() => {
+    let active = true;
+    loadBisneIndex().then((map) => {
+      if (active && map.size > 0) setBisneMap(map);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const hasFilters = Boolean(query.trim()) || activeCategory !== "all" || maxPrice > 0 || offersOnly;
 
@@ -121,6 +138,8 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
                     isFavorited={favoriteIds.includes(product.id)}
                     onToggleFavorite={toggleFavorite}
                     priority={i < 4}
+                    showBisne={Boolean(bisneMap)}
+                    bisneInfo={bisneMap?.get(product.bisneId)}
                   />
                 ))}
               </MasonryGrid>
@@ -137,7 +156,7 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
           <TrendsSection
             products={initialProducts}
             storeConfig={storeConfig}
-            soldMap={soldMap}
+            salesMap={salesMap}
             onOpenProduct={setSelectedProduct}
             onOpenPromo={setSelectedPromo}
             onAddToCart={handleAddToCart}
@@ -153,25 +172,21 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
         cartItems={cartItems}
         onUpdateQty={updateQty}
         onRemoveItem={removeItem}
+        onRemoveItems={removeItems}
         onClearCart={clearCart}
         storeConfig={storeConfig}
-        onOrderComplete={() => {
-          cartItems.forEach((item) => recordSale(item.productId || item.id.split("::")[0], item.quantity));
-        }}
-        onEditItem={(item) => {
-          const originalProduct = initialProducts.find((p) => p.id === (item.productId || item.id.split("::")[0]));
-          if (originalProduct) setSelectedProduct(originalProduct);
-        }}
+        onOrderComplete={handleOrderComplete}
       />
 
       <ProductModal
-        product={toEffectiveProduct(selectedProduct)}
+        product={withStock(selectedProduct)}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
         storeConfig={storeConfig}
         onQuickBuy={(p, opts, q) => { setQuickBuyProduct({ ...p, quantity: q }); }}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
+        bisneInfo={selectedBisneInfo}
       />
 
       {quickBuyProduct && (
@@ -179,7 +194,7 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
           product={quickBuyProduct}
           onClose={() => setQuickBuyProduct(null)}
           onOrderComplete={() => {
-            if (quickBuyProduct?.id) recordSale(quickBuyProduct.id, quickBuyProduct.quantity);
+            handleOrderComplete();
             setQuickBuyProduct(null);
           }}
           storeConfig={storeConfig}

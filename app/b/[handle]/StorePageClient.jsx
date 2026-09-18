@@ -5,6 +5,7 @@ import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
 import CatalogContainer from "../../CatalogContainer";
+import ReviewList from "@/components/trust/ReviewList";
 import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { getChannelUrl } from "@/lib/messaging";
@@ -195,7 +196,9 @@ export default function StorePageClient({ bisne, initialProducts, storeConfig })
         </div>
       </section>
 
-      <CatalogContainer initialProducts={initialProducts} storeConfig={storeConfig} initialCategory="all" />
+      <CatalogContainer initialProducts={initialProducts} storeConfig={storeConfig} initialCategory="all" bisneId={bisne?.id} />
+
+      <ReviewList bisneId={bisne.id} />
     </div>
   );
 }

@@ -1,7 +1,9 @@
 {
-  "name": "elBisne — Catálogo en línea",
+  "name": "elBisne — Marketplace social",
   "short_name": "elBisne",
-  "description": "Explora productos, añade al carrito y pide directo por WhatsApp.",
+  "description": "Descubre bisnes cercanos, explora productos y pide directo por WhatsApp.",
+  "categories": ["shopping", "business"],
+  "lang": "es",
   "start_url": "/",
   "scope": "/",
   "id": "/",

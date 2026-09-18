@@ -8,18 +8,18 @@ import Icon from "@/components/Icon";
 export default function TrendsSection({
   products,
   storeConfig,
-  soldMap,
+  salesMap,
   onOpenProduct,
   onOpenPromo,
   onAddToCart,
   favoriteIds,
   onToggleFavorite,
 }) {
-  // ── Tendencias: generadas por actividad (soldMap) + refuerzo con ofertas ──
+  // ── Tendencias: por ventas reales en DB (salesMap) + refuerzo con ofertas ──
   const trending = [...products]
     .sort((a, b) => {
-      const sa = soldMap[a.id] || 0;
-      const sb = soldMap[b.id] || 0;
+      const sa = (salesMap && salesMap[a.id]) || 0;
+      const sb = (salesMap && salesMap[b.id]) || 0;
       if (sb !== sa) return sb - sa;
       if (b.offer !== a.offer) return b.offer ? 1 : -1;
       if (a.featured !== b.featured) return a.featured ? -1 : 1;

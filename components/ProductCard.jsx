@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
 
-export default function ProductCard({ product, onAddToCart, onOpenDetails, priority, isFavorited = false, onToggleFavorite, index = 0 }) {
+export default function ProductCard({ product, onAddToCart, onOpenDetails, priority, isFavorited = false, onToggleFavorite, index = 0, showBisne = false, bisneInfo }) {
   const { name, priceUSD, originalPrice, category, image, description, ratioClass } = product;
   const hasDiscount = originalPrice != null && originalPrice > priceUSD;
   const hasOptions = product.options && Object.keys(product.options).length > 0;
   const stock = product.stock;
   const productStatus = product.status;
-  const isComingSoon = productStatus === "coming-soon";
+  const isComingSoon = productStatus === "coming-soon" || productStatus === "coming_soon";
   const isOutOfStock = !isComingSoon && stock === 0;
   const canInteract = !isComingSoon && !isOutOfStock;
 
@@ -65,6 +65,17 @@ export default function ProductCard({ product, onAddToCart, onOpenDetails, prior
       </div>
       <div className="product-card-info">
         <span className="product-card-category">{category}</span>
+        {showBisne && bisneInfo?.handle && (
+          <span className="product-card-bisne" title={`Vendido por ${bisneInfo.name}`}>
+            {bisneInfo.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={bisneInfo.logoUrl} alt="" width={14} height={14} style={{ borderRadius: "50%", objectFit: "cover" }} />
+            ) : (
+              <Icon name="shopping-bag" size={11} />
+            )}
+            {bisneInfo.name}
+          </span>
+        )}
         <h3 className="product-card-title">{name}</h3>
         {description && <p className="product-card-desc">{description}</p>}
 

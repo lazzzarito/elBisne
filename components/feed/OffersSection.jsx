@@ -4,7 +4,7 @@ import MasonryGrid from "@/components/MasonryGrid";
 import ProductCard from "@/components/ProductCard";
 import Icon from "@/components/Icon";
 
-export default function OffersSection({ offers, onAddToCart, onOpenDetails, favoriteIds, onToggleFavorite, onSeeAll }) {
+export default function OffersSection({ offers, onAddToCart, onOpenDetails, favoriteIds, onToggleFavorite, onSeeAll, showBisne = false, bisneMap }) {
   if (!offers || !offers.length) return null;
   const visible = offers.slice(0, 8);
 
@@ -29,6 +29,8 @@ export default function OffersSection({ offers, onAddToCart, onOpenDetails, favo
             onToggleFavorite={onToggleFavorite}
             priority={i < 4}
             index={i}
+            showBisne={showBisne}
+            bisneInfo={bisneMap?.get(product.bisneId)}
           />
         ))}
       </MasonryGrid>

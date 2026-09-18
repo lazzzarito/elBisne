@@ -6,7 +6,10 @@ import { lockBodyScroll } from "@/lib/scroll-lock";
 import { useHistoryPopup } from "@/lib/use-history-popup";
 import { useFocusTrap } from "@/lib/use-focus-trap";
 
-export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onQuickBuy, productQty: productQtyProp = 1, onQtyChange, isFavorited = false, onToggleFavorite }) {
+import Link from "next/link";
+import Icon from "@/components/Icon";
+
+export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onQuickBuy, productQty: productQtyProp = 1, onQtyChange, isFavorited = false, onToggleFavorite, bisneInfo }) {
   // ── Track active image index for gallery ──
   const [activeImage, setActiveImage] = useState(0);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -64,7 +67,7 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
   const { name, priceUSD, originalPrice, category, images, description, contentHtml, attributes, options } = product;
   const stock = product.stock;
   const productStatus = product.status;
-  const isComingSoon = productStatus === "coming-soon";
+  const isComingSoon = productStatus === "coming-soon" || productStatus === "coming_soon";
   const isOutOfStock = !isComingSoon && stock === 0;
   const isLowStock = !isComingSoon && !isOutOfStock && stock > 0 && stock < 10;
   const maxQty = isComingSoon || isOutOfStock ? 0 : (isFinite(stock) ? stock : 99);
@@ -213,6 +216,29 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
               <div className="product-modal-info-col">
                 <span className="product-card-category">{category}</span>
                 <h2 className="product-modal-title">{name}</h2>
+
+                {bisneInfo?.handle && (
+                  <Link
+                    href={`/b/${bisneInfo.handle}`}
+                    className="product-modal-bisne"
+                    onClick={onClose}
+                    title={`Ver tienda de ${bisneInfo.name}`}
+                  >
+                    {bisneInfo.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={bisneInfo.logoUrl} alt="" width={18} height={18} style={{ borderRadius: "50%", objectFit: "cover" }} />
+                    ) : (
+                      <Icon name="shopping-bag" size={13} />
+                    )}
+                    <span>{bisneInfo.name}</span>
+                    {bisneInfo.verified && (
+                      <span className="business-verified-badge" title="Tienda verificada">
+                        <Icon name="check" size={10} />
+                      </span>
+                    )}
+                    <Icon name="arrow-up" size={11} style={{ transform: "rotate(45deg)" }} />
+                  </Link>
+                )}
 
                 <div className="product-modal-prices">
                   {hasDiscount && (

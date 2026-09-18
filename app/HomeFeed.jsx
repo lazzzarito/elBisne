@@ -8,6 +8,9 @@ import BusinessesNearby from "@/components/feed/BusinessesNearby";
 import OffersSection from "@/components/feed/OffersSection";
 import RecommendationsFeed from "@/components/feed/RecommendationsFeed";
 import { useApp } from "@/context/AppContext";
+import { useBisneInfo } from "@/lib/use-bisne-info";
+import { useEffect, useState as useStateAlias } from "react";
+import { loadBisneIndex } from "@/lib/orders";
 
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
 const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: () => null });
@@ -21,17 +24,31 @@ export default function HomeFeed({ initialProducts, storeConfig, categories, bis
     addToCart,
     updateQty,
     removeItem,
+    removeItems,
     clearCart,
     favoriteIds,
     toggleFavorite,
-    recordSale,
-    toEffectiveProduct,
+    handleOrderComplete,
+    withStock,
   } = useApp();
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [quickBuyProduct, setQuickBuyProduct] = useState(null);
   const [showOffers, setShowOffers] = useState(false);
+  const selectedBisneInfo = useBisneInfo(selectedProduct?.bisneId);
+  const [bisneMap, setBisneMap] = useStateAlias(null);
+
+  // Índice de bisnes para el badge "vendido por" en RecommendationsFeed/Ofertas
+  useEffect(() => {
+    let active = true;
+    loadBisneIndex().then((map) => {
+      if (active && map.size > 0) setBisneMap(map);
+    });
+    return () => {
+      active = false;
+    };
+  }, [setBisneMap]);
 
   const banners = (storeConfig.promoBanners || []).map((image, i) => ({
     image,
@@ -79,6 +96,8 @@ export default function HomeFeed({ initialProducts, storeConfig, categories, bis
           favoriteIds={favoriteIds}
           onToggleFavorite={toggleFavorite}
           onSeeAll={() => setShowOffers(true)}
+          showBisne={Boolean(bisneMap)}
+          bisneMap={bisneMap}
         />
 
         <RecommendationsFeed
@@ -87,6 +106,8 @@ export default function HomeFeed({ initialProducts, storeConfig, categories, bis
           onOpenDetails={setSelectedProduct}
           favoriteIds={favoriteIds}
           onToggleFavorite={toggleFavorite}
+          showBisne={Boolean(bisneMap)}
+          bisneMap={bisneMap}
         />
       </main>
 
@@ -94,25 +115,21 @@ export default function HomeFeed({ initialProducts, storeConfig, categories, bis
         cartItems={cartItems}
         onUpdateQty={updateQty}
         onRemoveItem={removeItem}
+        onRemoveItems={removeItems}
         onClearCart={clearCart}
         storeConfig={storeConfig}
-        onOrderComplete={() => {
-          cartItems.forEach((item) => recordSale(item.productId || item.id, item.quantity));
-        }}
-        onEditItem={(item) => {
-          const originalProduct = initialProducts.find(p => p.id === (item.productId || item.id.split("::")[0]));
-          if (originalProduct) setSelectedProduct(originalProduct);
-        }}
+        onOrderComplete={handleOrderComplete}
       />
 
       <ProductModal
-        product={toEffectiveProduct(selectedProduct)}
+        product={withStock(selectedProduct)}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
         storeConfig={storeConfig}
         onQuickBuy={setQuickBuyProduct}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
+        bisneInfo={selectedBisneInfo}
       />
 
       {quickBuyProduct && (
@@ -120,7 +137,7 @@ export default function HomeFeed({ initialProducts, storeConfig, categories, bis
           product={quickBuyProduct}
           onClose={() => setQuickBuyProduct(null)}
           onOrderComplete={() => {
-            if (quickBuyProduct?.id) recordSale(quickBuyProduct.id, quickBuyProduct.quantity || 1);
+            handleOrderComplete();
             setSelectedProduct(null);
           }}
           storeConfig={storeConfig}
