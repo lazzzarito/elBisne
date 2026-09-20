@@ -114,7 +114,7 @@ const SECTIONS = [
         <ul>
           <li>Rejilla de productos tipo masonry, responsiva y estilo Pinterest</li>
           <li>Modal de detalle de producto con variantes de opciones y galería de imágenes</li>
-          <li>Compra rápida y carrito flotante con integración de pedidos multicanal</li>
+          <li>Compra rápida y carrito accesible desde el menú de navegación, con pedidos multicanal</li>
           <li>Seguimiento de stock e inventario (del lado del cliente)</li>
           <li>Sección de ofertas flash con filtro de descuentos</li>
           <li>Sistema de favoritos / lista de deseos con corazón animado</li>

@@ -1,8 +1,10 @@
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import TopNav from "@/components/navigation/TopNav";
+import BottomNav from "@/components/navigation/BottomNav";
 import ToastNotification from "@/components/ToastNotification";
 import Preloader from "@/components/Preloader";
+import { getStoreConfig } from "@/lib/products";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
@@ -34,14 +36,18 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
+  // storeConfig base del sitio (global): para los modales globales del layout
+  const storeConfig = getStoreConfig();
+
   return (
     <html lang="es" className={inter.variable}>
       <link rel="preconnect" href="https://wa.me" />
       <body>
         <a href="#main-content" className="skip-to-content">Saltar al contenido</a>
         <AppProvider>
-          <TopNav />
+          <TopNav storeConfig={storeConfig} />
           <Preloader>{children}</Preloader>
+          <BottomNav />
           <ToastNotification />
         </AppProvider>
       </body>

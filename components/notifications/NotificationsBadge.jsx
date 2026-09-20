@@ -61,7 +61,7 @@ export default function NotificationsBadge() {
   return (
     <Link href="/notificaciones" className="notif-badge-link" aria-label={`Notificaciones (${unread} sin leer)`}>
       <Icon name="sparkles" size={18} />
-      {unread > 0 && <span className="notif-badge-count">{unread > 9 ? "9+" : unread}</span>}
+      {unread > 0 && <span key={unread} className="notif-badge-count">{unread > 9 ? "9+" : unread}</span>}
     </Link>
   );
 }

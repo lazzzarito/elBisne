@@ -7,7 +7,11 @@ import ProductCard from "@/components/ProductCard";
 import GlobalSearch from "./GlobalSearch";
 import ExploreFilters from "./ExploreFilters";
 import TrendsSection from "./TrendsSection";
-import MapSection from "./MapSection";
+import MapSection from "@/components/map/MapSection";
+import BusinessesNewSection from "@/components/feed/BusinessesNewSection";
+import AdSlot from "@/components/feed/AdSlot";
+import SiteFooter from "@/components/feed/SiteFooter";
+import LegalInfoModal from "@/components/LegalInfoModal";
 import { useApp } from "@/context/AppContext";
 import { useBisneInfo } from "@/lib/use-bisne-info";
 import { useEffect as useEffectAlias } from "react";
@@ -18,7 +22,7 @@ const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: (
 const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 const PromoModal = dynamic(() => import("@/components/PromoModal"), { ssr: false, loading: () => null });
 
-export default function ExplorarPage({ initialProducts, storeConfig, categories, bisnes }) {
+export default function ExplorarPage({ initialProducts, storeConfig, categories, bisnes, sitePromos, adSlots }) {
   const {
     cartItems,
     addToCart,
@@ -165,8 +169,22 @@ export default function ExplorarPage({ initialProducts, storeConfig, categories,
           />
         )}
 
+        {/* Bisnes por novedad con botón seguir (UI_UX.md §5.3) */}
+        <BusinessesNewSection bisnes={bisnes} max={6} />
+
+        {/* Publicidad (slot de Explorar, UI_UX.md §5.4/§8) con fallback a promos */}
+        <AdSlot
+          ad={(adSlots || []).find((a) => a.slot === "explorar") || null}
+          fallbackPromo={(sitePromos || [])[2] || null}
+          position="mid"
+        />
+
         <MapSection bisnes={bisnes} storeConfig={storeConfig} />
       </main>
+
+      {/* Footer sencillo (UI_UX.md §5.5) */}
+      <SiteFooter storeConfig={storeConfig} />
+      <LegalInfoModal storeConfig={storeConfig} />
 
       <Cart
         cartItems={cartItems}

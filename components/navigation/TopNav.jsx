@@ -6,19 +6,19 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Icon from "@/components/Icon";
 import NotificationsBadge from "@/components/notifications/NotificationsBadge";
-import FollowedStoresModal from "@/components/FollowedStoresModal";
+import GlobalFavoritesModal from "@/components/GlobalFavoritesModal";
 
-const TABS = [
+const DESKTOP_TABS = [
   { href: "/", label: "Inicio", icon: "home" },
   { href: "/explorar", label: "Explorar", icon: "explore" },
   { href: "/perfil", label: "Perfil", icon: "user" },
 ];
 
-const HIDE_PREFIXES = ["/auth", "/tienda", "/b/", "/product/"];
+const HIDE_PREFIXES = ["/auth", "/tienda", "/b/", "/product/", "/pedido/", "/panel", "/admin", "/mensajes"];
 
 export default function TopNav() {
   const pathname = usePathname();
-  const [showFollowed, setShowFollowed] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   if (HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
@@ -42,7 +42,7 @@ export default function TopNav() {
         </Link>
 
         <nav className="top-nav-tabs" aria-label="Navegación principal">
-          {TABS.map((tab) => (
+          {DESKTOP_TABS.map((tab) => (
             <Link
               key={tab.href}
               href={tab.href}
@@ -53,20 +53,34 @@ export default function TopNav() {
               <span>{tab.label}</span>
             </Link>
           ))}
+
+          {/* Carrito como destination (desktop): abre el bottom-sheet global */}
+          <button
+            type="button"
+            className="top-nav-item"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-cart"))}
+          >
+            <Icon name="cart" size={18} />
+            <span>Carrito</span>
+          </button>
+        </nav>
+
+        <div className="top-nav-actions">
+          {/* Corazón global = productos favoritos (UI_UX.md §1) */}
           <button
             type="button"
             className="top-nav-fav-btn"
-            onClick={() => setShowFollowed(true)}
-            aria-label="Tus tiendas seguidas"
-            title="Tus tiendas seguidas"
+            onClick={() => setShowFavorites(true)}
+            aria-label="Tus productos favoritos"
+            title="Favoritos"
           >
-            <Icon name="heart-outline" size={17} />
+            <Icon name="heart-outline" size={18} />
           </button>
           <NotificationsBadge />
-        </nav>
+        </div>
       </div>
 
-      {showFollowed && <FollowedStoresModal onClose={() => setShowFollowed(false)} />}
+      {showFavorites && <GlobalFavoritesModal onClose={() => setShowFavorites(false)} />}
     </header>
   );
 }

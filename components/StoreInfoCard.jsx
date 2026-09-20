@@ -141,7 +141,7 @@ export default function StoreInfoCard({ storeConfig, showHowToBuy = false, onOpe
           <h3>¿Cómo comprar?</h3>
           <ol>
             <li>Explora el catálogo y toca + para añadir productos.</li>
-            <li>Ábre el carrito (botón flotante abajo).</li>
+            <li>Abre el carrito desde el menú o el botón flotante.</li>
             <li>Toca Confirmar para enviarnos tu pedido.</li>
           </ol>
         </div>

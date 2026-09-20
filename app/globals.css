@@ -554,14 +554,20 @@ body {
 }
 
 /* ===== Main Content Area ===== */
+/* El TopNav es sticky (fluye con el documento): ninguna página necesita
+   compensar la altura de un header fijo. */
 .main-container {
-  margin-top: 82px;
-  /* Compact single-row header */
   padding: 2rem;
   min-height: 100svh;
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 1rem 0.75rem 2rem;
+  }
 }
 
 .featured-section {
@@ -1060,6 +1066,7 @@ body {
   font-weight: 700;
   padding: 0.15rem 0.4rem;
   border-radius: 10px;
+  animation: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.5);
 }
 
 .cart-overlay {
@@ -3973,8 +3980,16 @@ body {
 
 /* ===== Fase 3 · Home Feed ===== */
 .home-feed {
-  margin-top: 82px;
   padding-bottom: 3rem;
+}
+
+/* Espaciado vertical uniforme entre las secciones del feed */
+.home-feed > * {
+  margin-bottom: 2.5rem;
+}
+
+.home-feed > .site-promos {
+  margin-top: 0.25rem;
 }
 
 /* Banner Slider */
@@ -4292,15 +4307,8 @@ body {
 
 /* Recommendations feed */
 .recommendations-section {
-  margin-bottom: 1rem;
   content-visibility: auto;
   contain-intrinsic-size: 800px;
-}
-
-@media (max-width: 768px) {
-  .home-feed {
-    margin-top: 52px;
-  }
 }
 
 /* ===== Fase 4 · Explorar ===== */
@@ -7239,6 +7247,7 @@ a.cart-bisne-name:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.5);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -7512,38 +7521,46 @@ a.cart-bisne-name:hover {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   Favorito global (tiendas seguidas) en TopNav
+   Favorito global (tiendas seguidas) en TopNav — mismo diseño que
+   el botón Seguir de las tiendas (.store-follow-btn)
    ════════════════════════════════════════════════════════════════ */
-.top-nav-fav-btn {
-  position: relative;
+.top-nav-follow-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
+  gap: 0.45rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  border: 1px solid transparent;
+  background: var(--accent-green);
+  color: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+  white-space: nowrap;
 }
 
-.top-nav-fav-btn:hover {
-  background: var(--bg-secondary);
+.top-nav-follow-btn:hover:not(.open) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-.top-nav-fav-btn:active {
-  transform: scale(0.94);
+/* Estado "abierto" (modal visible), igual que .store-follow-btn.following */
+.top-nav-follow-btn.open {
+  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
 }
 
-/* El corazón outline usa stroke blanco por defecto en Icon.jsx: lo oscurecemos aquí */
-.top-nav-fav-btn svg path {
-  stroke: var(--text-primary);
-}
+@media (max-width: 820px) {
+  .top-nav-follow-btn .follow-btn-label {
+    display: none;
+  }
 
-.top-nav-fav-btn:hover svg path {
-  stroke: #e74c3c;
+  .top-nav-follow-btn {
+    padding: 0.6rem 0.75rem;
+  }
 }
 
 .followed-list {
@@ -7689,4 +7706,1319 @@ a.cart-bisne-name:hover {
 .product-card-bisne svg {
   flex-shrink: 0;
   color: var(--accent-green);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RE DISEÑO SOCIAL v2.0 (UI_UX.md)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Bottom tab bar móvil (Fase B · píldora flotante, solo iconos) ── */
+.bottom-nav {
+  position: fixed;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  max-width: calc(100vw - 24px);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+
+.bottom-nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bottom-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 46px;
+  min-width: 46px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.bottom-nav-item.active,
+.bottom-nav-item:active {
+  color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
+}
+
+.bottom-nav-icon {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* Solo iconos: el texto solo se muestra en la pestaña activa,
+   expandido AL LADO del icono (nunca debajo) */
+.bottom-nav-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(6px);
+  transition: max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  max-width: 96px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* El badge re-dispara la animación al cambiar la cantidad (remount vía key) */
+.bottom-nav-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent-green);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.5);
+}
+
+/* El TopNav se oculta en móvil (solo logo + acciones); bottom nav en desktop */
+@media (max-width: 1023px) {
+  .top-nav-tabs,
+  .top-nav-actions .top-nav-fav-btn {
+    display: none;
+  }
+
+  body {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0));
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+.top-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.top-nav-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.top-nav-fav-btn:hover {
+  background: var(--bg-secondary);
+  color: #e74c3c;
+}
+
+/* Escritorio: pestañas a la derecha, agrupadas con las acciones
+   (no pegadas al logo) */
+@media (min-width: 1024px) {
+  .top-nav-tabs {
+    margin-left: auto;
+  }
+
+  .top-nav-actions {
+    margin-left: 0.4rem;
+  }
+}
+
+/* ── Dropdown del buscador via portal (Fase D · sin solapes) ────── */
+.gs-dropdown-portal {
+  z-index: 400;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+}
+
+.gs-dropdown-portal .gs-suggestion {
+  height: 56px; /* altura fija por tipo de resultado */
+}
+
+.gs-dropdown-portal .gs-suggestion-bisne,
+.gs-dropdown-portal .gs-recent-row {
+  height: 52px;
+}
+
+.gs-live-results {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.gs-live-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.gs-live-bisnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.6rem;
+}
+
+.gs-live-products {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.gs-live-product {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.gs-live-product:hover {
+  border-color: color-mix(in srgb, var(--accent-green) 40%, transparent);
+  background: color-mix(in srgb, var(--accent-green) 6%, var(--bg-primary));
+}
+
+.gs-live-product-img {
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.gs-live-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.gs-live-product-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-live-product-meta {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+/* Card social de bisne con follow (Fase D) */
+.business-card-new {
+  position: relative;
+}
+
+.business-card-main {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.business-card-follow {
+  flex-shrink: 0;
+}
+
+/* ── Header estilo Instagram unificado (Fase A) ─────────────────── */
+.sp-page {
+  padding-bottom: 2rem;
+}
+
+.sp-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 4vw, 2rem) 0;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.sp-pinned-banner {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.sp-pinned-banner iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.sp-pinned-offer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--store-accent, var(--accent-green));
+  text-decoration: none;
+  background: color-mix(in srgb, var(--store-accent, var(--accent-green)) 10%, var(--bg-secondary));
+  font-size: 0.95rem;
+}
+
+.sp-header-main {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 2.5rem);
+  flex-wrap: wrap;
+}
+
+.sp-avatar {
+  width: clamp(72px, 18vw, 96px);
+  height: clamp(72px, 18vw, 96px);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--store-accent, var(--accent-green));
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sp-avatar-initial {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--store-accent, var(--accent-green));
+}
+
+.sp-header-info {
+  flex: 1;
+  min-width: 180px;
+}
+
+.sp-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.sp-name {
+  font-size: clamp(1.15rem, 3vw, 1.5rem);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.sp-rating-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.sp-rating-chip svg {
+  color: #f5b50a;
+}
+
+.sp-bio {
+  margin-top: 0.3rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.sp-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.sp-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sp-counters {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+.sp-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  background: none;
+  border: none;
+  cursor: default;
+  color: var(--text-primary);
+}
+
+.sp-counter.clickable {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sp-counter.clickable:hover strong {
+  color: var(--store-accent, var(--accent-green));
+}
+
+.sp-counter strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.sp-counter span {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.sp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.sp-btn:hover {
+  border-color: color-mix(in srgb, var(--accent-green) 45%, transparent);
+}
+
+.sp-btn:active {
+  transform: scale(0.97);
+}
+
+.sp-btn.primary {
+  background: var(--store-accent, var(--accent-green));
+  border-color: transparent;
+  color: #fff;
+}
+
+.sp-btn.ghost {
+  background: transparent;
+}
+
+.sp-follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.sp-follow-btn.sm {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 999px;
+}
+
+.sp-follow-btn.following {
+  border-color: color-mix(in srgb, #e74c3c 45%, transparent);
+  color: #e74c3c;
+  background: color-mix(in srgb, #e74c3c 8%, var(--bg-secondary));
+}
+
+/* ── Pestañas del perfil estilo IG (Fase A) ─────────────────────── */
+.sp-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  margin: 1.25rem auto 0;
+  max-width: 980px;
+}
+
+.perfil-tabs {
+  margin-top: 1.5rem;
+}
+
+.sp-tab {
+  flex: 1;
+  max-width: 220px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem 0.5rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.sp-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+}
+
+.sp-tabpanels {
+  max-width: 980px;
+  margin: 1rem auto 0;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+}
+
+.sp-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sp-rating-summary {
+  display: flex;
+  justify-content: center;
+}
+
+.sp-rating-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.sp-rating-stars {
+  display: inline-flex;
+  gap: 0.15rem;
+  color: #f5b50a;
+}
+
+.sp-rating-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sp-about-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: var(--bg-primary);
+}
+
+.sp-about-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.sp-about-text {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.sp-about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.sp-about-item {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.sp-about-item svg {
+  color: var(--store-accent, var(--accent-green));
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.sp-about-item strong {
+  display: block;
+  font-size: 0.82rem;
+  margin-bottom: 0.1rem;
+}
+
+.sp-about-item p {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}
+
+.sp-about-map {
+  margin-top: 0.5rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  height: 180px;
+}
+
+.sp-about-map iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.sp-about-panel-link {
+  margin-top: 1rem;
+  align-self: flex-start;
+}
+
+/* ── Editor inline del banner fijable (Fase A) ──────────────────── */
+.theme-inline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 561px) {
+  .theme-inline-overlay {
+    align-items: center;
+  }
+}
+
+.theme-inline-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 561px) {
+  .theme-inline-sheet {
+    border-radius: var(--radius-lg);
+  }
+}
+
+.theme-inline-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+/* ── Promos globales del sitio (Fase C) ─────────────────────────── */
+.site-promos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Cuadradas 1:1 en columna fija a la derecha; la landscape se estira para
+   igualar su alto combinado. El ancho de la columna manda en todo el layout. */
+.site-promos-grid {
+  display: grid;
+  grid-template-columns: 1fr clamp(150px, 20%, 230px);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.site-promo-landscape {
+  position: relative;
+  min-height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  background: var(--bg-secondary);
+}
+
+.site-promos-squares {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.site-promo-square {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  background: var(--bg-secondary);
+}
+
+/* Móvil muy estrecho: landscape 16:9 a ancho completo, cuadradas 1:1 debajo */
+@media (max-width: 480px) {
+  .site-promos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site-promo-landscape {
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+
+  .site-promos-squares {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .site-promo-square {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+.site-promo-img {
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.site-promo-landscape:hover .site-promo-img,
+.site-promo-square:hover .site-promo-img,
+.site-promo-thumb:hover .site-promo-img {
+  transform: scale(1.04);
+}
+
+.site-promo-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0.9rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent 55%);
+  color: #fff;
+  text-align: left;
+}
+
+.site-promo-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.site-promo-subtitle {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.site-promos-scroll {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.25rem;
+}
+
+.site-promo-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 140px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  scroll-snap-align: start;
+  background: var(--bg-secondary);
+}
+
+/* ── Popup de publicidad (Fase C) ───────────────────────────────── */
+.ad-popup {
+  position: relative;
+  width: min(480px, 92vw);
+  max-height: 85dvh;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  margin: auto;
+}
+
+.ad-popup-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-secondary);
+}
+
+.ad-popup-img {
+  object-fit: cover;
+}
+
+.ad-popup-body {
+  padding: 1.1rem 1.25rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ad-popup-tag {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+}
+
+.ad-popup-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.ad-popup-subtitle {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.ad-popup-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  background: var(--accent-green);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: filter 0.2s;
+}
+
+.ad-popup-cta:hover {
+  filter: brightness(1.08);
+}
+
+/* ── Slots publicitarios (Fase C/E) ─────────────────────────────── */
+.ad-slot {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: clamp(110px, 18vw, 180px);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  padding: 0;
+  cursor: pointer;
+}
+
+/* En móvil el banner horizontal necesita menos altura (evita sensación de spam) */
+@media (max-width: 560px) {
+  .ad-slot {
+    height: 104px;
+  }
+}
+
+.ad-slot-img {
+  object-fit: cover;
+}
+
+.ad-slot-tag {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.ad-slot-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 70%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* ── Registro en pasos (Fase A) ─────────────────────────────────── */
+.perfil-guest-wrap {
+  max-width: 460px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.auth-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  background: var(--bg-primary);
+}
+
+.auth-steps-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.auth-steps-sub {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: -0.5rem;
+}
+
+.auth-route-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.auth-route-card:hover {
+  border-color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 5%, var(--bg-primary));
+}
+
+.auth-route-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.auth-route-icon.bisne {
+  background: color-mix(in srgb, #f5b50a 14%, transparent);
+  color: #d99a00;
+}
+
+.auth-route-card span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+}
+
+.auth-route-card strong {
+  font-size: 0.92rem;
+}
+
+.auth-route-card small {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.auth-steps-login-hint {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.auth-steps-login-hint button {
+  background: none;
+  border: none;
+  color: var(--accent-green);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+.auth-steps-progress {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.auth-steps-dot {
+  width: 28px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-color);
+  transition: background 0.2s;
+}
+
+.auth-steps-dot.active {
+  background: var(--accent-green);
+}
+
+.auth-steps-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.auth-steps-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.auth-steps-next {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-green);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.auth-steps-next:hover {
+  filter: brightness(1.08);
+}
+
+.auth-steps-next:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.auth-steps-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ── Sugerencia opcional de cuenta (Sección 10) ─────────────────── */
+.account-suggestion {
+  max-width: 400px;
+}
+
+.account-suggestion-body {
+  padding: 1.5rem 1.4rem 1.3rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.account-suggestion-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.account-suggestion-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.account-suggestion-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  text-align: left;
+  margin: 0 auto;
+}
+
+.account-suggestion-perks span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.account-suggestion-perks svg {
+  color: var(--accent-green);
+}
+
+.account-suggestion-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  background: var(--accent-green);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: filter 0.2s;
+}
+
+.account-suggestion-cta:hover {
+  filter: brightness(1.08);
+}
+
+.account-suggestion-later {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* ── Pedidos del comprador (pestaña Mis pedidos) ────────────────── */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+
+.order-row:hover {
+  border-color: color-mix(in srgb, var(--accent-green) 40%, transparent);
+}
+
+.order-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.order-row-bisne {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.order-row-handle {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.order-row-items,
+.order-row-date {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.order-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.order-row-total {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.order-status-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.order-status-chip.status-confirmed {
+  background: color-mix(in srgb, var(--accent-green) 15%, transparent);
+  color: var(--accent-green);
+}
+
+.order-status-chip.status-shipped {
+  background: color-mix(in srgb, #f5b50a 15%, transparent);
+  color: #d99a00;
+}
+
+.order-status-chip.status-delivered {
+  background: color-mix(in srgb, var(--accent-green) 22%, transparent);
+  color: var(--accent-green);
+}
+
+.order-status-chip.status-cancelled {
+  background: color-mix(in srgb, #e74c3c 12%, transparent);
+  color: #e74c3c;
+}
+
+.global-favs-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 0;
+}
+
+/* ── Barra de filtros del catálogo (solo tiendas; sin doble header) ── */
+.catalog-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 auto 1.25rem;
+  max-width: 1400px;
+}
+
+.catalog-filter-bar .category-nav-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-filter-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.catalog-filter-btn:hover {
+  border-color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 8%, var(--bg-primary));
+}
+
+/* El catálogo de tienda ya no compite con el TopNav global */
+.store-page .catalog-filter-bar {
+  margin-top: 0;
+}
+
+/* ── Formularios de admin (promos / anuncios) ───────────────────── */
+.admin-promo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.9rem;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  margin-top: 0.75rem;
+}
+
+.admin-promo-form .cinfo-input {
+  width: 100%;
+}
+
+.admin-promo-form .panel-btn-primary {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }

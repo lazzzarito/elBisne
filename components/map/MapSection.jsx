@@ -4,7 +4,10 @@ import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
 
-export default function MapSection({ bisnes, storeConfig }) {
+// Mapa de bisnes (UI_UX.md §4.6): componente compartido entre Home
+// ("Bisnes cerca de ti") y Explorar. Embed interactivo + tarjetas.
+// showMapsLink: oculta el botón "Abrir en Google Maps" (sobra en Home).
+export default function MapSection({ bisnes, storeConfig, title = "Bisnes cerca de ti", showMapsLink = true }) {
   if (!bisnes || bisnes.length === 0) return null;
 
   const sorted = [...bisnes].sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -14,7 +17,7 @@ export default function MapSection({ bisnes, storeConfig }) {
     <section className="featured-section explore-map-section" aria-label="Bisnes cerca de ti">
       <h2 className="featured-title">
         <Icon name="map-pin" />
-        Bisnes cerca de ti
+        {title}
         <span className="featured-title-line" />
       </h2>
 
@@ -77,7 +80,7 @@ export default function MapSection({ bisnes, storeConfig }) {
             </Link>
           ))}
 
-          {googleMapsUrl && googleMapsUrl !== "#" && (
+          {showMapsLink && googleMapsUrl && googleMapsUrl !== "#" && (
             <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="btn-outline explore-map-open">
               <Icon name="map-pin" />
               Abrir en Google Maps
