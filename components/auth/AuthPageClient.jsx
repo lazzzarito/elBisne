@@ -4,16 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-
-const translateError = (msg = "") => {
-  if (/invalid login credentials/i.test(msg)) return "Correo o contraseña incorrectos.";
-  if (/already registered|already been registered/i.test(msg)) return "Ya existe una cuenta con ese correo.";
-  if (/email not confirmed/i.test(msg)) return "Tu correo aún no está confirmado. Revisa tu bandeja de entrada.";
-  if (/at least 6 characters/i.test(msg)) return "La contraseña debe tener al menos 6 caracteres.";
-  if (/invalid email/i.test(msg)) return "Introduce un correo válido.";
-  if (/rate limit/i.test(msg)) return "Demasiados intentos. Espera un momento y vuelve a intentarlo.";
-  return msg;
-};
+import { translateAuthError } from "@/lib/auth-errors";
 
 export default function AuthPageClient() {
   const router = useRouter();
@@ -40,7 +31,7 @@ export default function AuthPageClient() {
       if (mode === "login") {
         const { error } = await sb.auth.signInWithPassword({ email, password });
         if (error) {
-          setError(translateError(error.message));
+          setError(translateAuthError(error.message));
         } else {
           showToast("Sesión iniciada");
           router.push("/perfil");
@@ -53,14 +44,14 @@ export default function AuthPageClient() {
           options: { data: { full_name: fullName.trim() || email.split("@")[0] } },
         });
         if (error) {
-          setError(translateError(error.message));
+          setError(translateAuthError(error.message));
         } else {
           showToast("Revisa tu correo para confirmar tu cuenta");
           setMode("login");
         }
       }
     } catch (err) {
-      setError(translateError(err.message));
+      setError(translateAuthError(err.message));
     } finally {
       setLoading(false);
     }
@@ -75,9 +66,9 @@ export default function AuthPageClient() {
         provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
-      if (error) setError(translateError(error.message));
+      if (error) setError(translateAuthError(error.message));
     } catch (err) {
-      setError(translateError(err.message));
+      setError(translateAuthError(err.message));
       setLoading(false);
     }
   };

@@ -141,7 +141,9 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
   };
 
   const handleDirectBuy = () => {
-    onQuickBuy({ ...product, selectedOptions, quantity: productQty });
+    // Guard: si el anfitrión no provee checkout rápido, no rompemos —
+    // el usuario siempre puede añadir al carrito y pagar desde ahí.
+    onQuickBuy?.({ ...product, selectedOptions, quantity: productQty });
   };
 
   return (

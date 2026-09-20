@@ -6,7 +6,7 @@ import { lockBodyScroll } from "@/lib/scroll-lock";
 import { useHistoryPopup } from "@/lib/use-history-popup";
 import { getChannelUrl, getDefaultChannel } from "@/lib/messaging";
 import StoreInfoCard from "@/components/StoreInfoCard";
-
+import Icon from "@/components/Icon";
 
 export default function FilterHeader({
   categories,
@@ -24,9 +24,6 @@ export default function FilterHeader({
 }) {
   // ── Refs & UI state ──
   const navRef = useRef(null);
-  const searchInputRef = useRef(null);
-  const sortMenuRef = useRef(null);
-  const [isMobileSearchActive, setIsMobileSearchActive] = useState(false);
   const [showStoreInfo, setShowStoreInfo] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
 
@@ -44,13 +41,6 @@ export default function FilterHeader({
       });
     }
   }, [activeCategory]);
-
-  // ── Focus search when mobile search activates ──
-  useEffect(() => {
-    if (isMobileSearchActive && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isMobileSearchActive]);
 
   // ── Lock scroll & handle Escape key for modals ──
   useEffect(() => {
@@ -101,138 +91,40 @@ export default function FilterHeader({
 
   return (
     <>
-      {/* ── Header bar: mobile search or brand + categories + actions ── */}
-      <header className="app-header">
-        {isMobileSearchActive ? (
-          <div className="mobile-search-row">
+      {/* Rediseño social v2.0: el buscador y favoritos viven en Explorar y en el
+          corazón global del TopNav. Este header se reduce a los filtros del
+          catálogo de una tienda (carrusel de categorías + botón filtros),
+          sin duplicar marca ni acciones globales (fin del doble header). */}
+      <header className="catalog-filter-bar">
+        <div className="category-nav-container" ref={navRef}>
+          <nav className="category-nav">
             <button
-              className="btn-back-header"
-              onClick={() => {
-                setIsMobileSearchActive(false);
-                onSearchChange("");
-              }}
-              title="Atrás"
+              className={`category-btn ${activeCategory === "all" ? "active" : ""}`}
+              onClick={() => onCategoryChange("all")}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
+              Todos
             </button>
-            <div className="search-bar-wrapper" style={{ maxWidth: "none", flex: 1 }}>
-              <span className="search-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </span>
-              <input
-                ref={searchInputRef}
-                type="text"
-                className="search-input"
-                placeholder="Buscar productos..."
-                aria-label="Buscar productos"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-              />
-              {searchQuery && (
-                <button className="clear-search-btn" onClick={() => onSearchChange("")} title="Limpiar" aria-label="Limpiar búsqueda">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="header-main-row">
-            <div className="brand-section" style={{ cursor: "pointer" }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              <div className="brand-logo-container">
-                <Image
-                  src={storeConfig.logoUrl || "/logo.webp"}
-                  alt={storeConfig.name}
-                  width={36}
-                  height={36}
-                  className="brand-logo-image"
-                  priority
-                />
-              </div>
-            </div>
-
-            <div className="category-nav-container" ref={navRef}>
-              <nav className="category-nav">
-                <button
-                  className={`category-btn ${activeCategory === "all" ? "active" : ""}`}
-                  onClick={() => onCategoryChange("all")}
-                >
-                  Todos
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    className={`category-btn ${activeCategory === category ? "active" : ""}`}
-                    onClick={() => onCategoryChange(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            <div className="header-right-actions">
-              <div className="desktop-search-bar">
-                <div className="search-bar-wrapper">
-                  <span className="search-icon">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                  </span>
-                    <input
-                    type="text"
-                    className="search-input"
-                    placeholder="Buscar..."
-                    aria-label="Buscar productos"
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                  />
-                  {searchQuery && (
-<button className="clear-search-btn" onClick={() => onSearchChange("")} title="Limpiar" aria-label="Limpiar búsqueda">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </div>
-
+            {categories.map((category) => (
               <button
-                className="icon-btn mobile-only-btn"
-                onClick={() => setIsMobileSearchActive(true)}
-                title="Buscar..."
-                aria-label="Buscar"
+                key={category}
+                className={`category-btn ${activeCategory === category ? "active" : ""}`}
+                onClick={() => onCategoryChange(category)}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                {category}
               </button>
+            ))}
+          </nav>
+        </div>
 
-              <button
-                className="icon-btn"
-                onClick={onOpenFavorites}
-                title="Favoritos"
-                aria-label="Favoritos"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                <span className={`fav-badge-header${favoriteCount > 0 ? "" : " empty"}`} suppressHydrationWarning>{favoriteCount}</span>
-              </button>
-            </div>
-          </div>
-        )}
+        <button
+          type="button"
+          className="icon-btn catalog-filter-btn"
+          onClick={() => setShowSortMenu(true)}
+          title="Filtros y orden"
+          aria-label="Filtros y orden"
+        >
+          <Icon name="filter" size={16} />
+        </button>
       </header>
 
       {/* ── Sort / filter bottom sheet ── */}
@@ -401,11 +293,12 @@ export default function FilterHeader({
                     className="social-icon-btn"
                     title="Facebook"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 2h-3a6 6 0 0 0-6 6v3H9v4h3v8h4v-8h3l1-4h-4V8a1 1 0 0 1 1-1h3z"></path>
                     </svg>
                   </a>
                 )}
+
                 {storeConfig.socialLinks?.instagram && (
                   <a
                     href={storeConfig.socialLinks.instagram}
@@ -414,7 +307,7 @@ export default function FilterHeader({
                     className="social-icon-btn"
                     title="Instagram"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                       <circle cx="17.5" cy="6.5" r="1.5"></circle>

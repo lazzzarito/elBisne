@@ -19,6 +19,9 @@ export default function AdminPage() {
   const [bisnes, setBisnes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState(null);
+  const [promos, setPromos] = useState([]);
+  const [promoForm, setPromoForm] = useState({ title: "", subtitle: "", image_url: "", link_url: "", link_type: "url", bisne_handle: "" });
+  const [adForm, setAdForm] = useState({ slot: "home-top", image_url: "", link_url: "", title: "" });
 
   const isAdmin = isLoggedIn && user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
@@ -70,6 +73,103 @@ export default function AdminPage() {
       setActingId(null);
     }
   }, [showToast]);
+
+  // ── Promos globales del sitio (UI_UX.md §4.1) ──
+  const loadPromos = useCallback(async () => {
+    if (!isAdmin || !isSupabaseConfigured()) return;
+    const supabase = createClient();
+    // El admin necesita ver también inactivas; con la policy pública solo
+    // llegan las activas. Para gestión completa usar service_role o aceptar
+    // solo lectura de activas + alta (upsert con service key en server).
+    const { data } = await supabase
+      .from("site_promos")
+      .select("*")
+      .order("position", { ascending: true });
+    setPromos(data || []);
+  }, [isAdmin]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!isAdmin || !isSupabaseConfigured()) return;
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("site_promos")
+        .select("*")
+        .order("position", { ascending: true });
+      if (!cancelled) setPromos(data || []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
+
+  const addPromo = useCallback(async () => {
+    if (!promoForm.image_url.trim()) {
+      showToast("La imagen de la promo es obligatoria", "warning");
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase.from("site_promos").insert({
+      title: promoForm.title.trim(),
+      subtitle: promoForm.subtitle.trim() || null,
+      image_url: promoForm.image_url.trim(),
+      link_url: promoForm.link_url.trim(),
+      link_type: promoForm.link_type,
+      bisne_handle: promoForm.link_type === "bisne" ? promoForm.bisne_handle.trim().replace(/^@/, "") : null,
+      position: promos.length,
+      active: true,
+    });
+    if (error) {
+      showToast("No se pudo crear la promo (requiere service_role)", "warning");
+      return;
+    }
+    showToast("Promo creada");
+    setPromoForm({ title: "", subtitle: "", image_url: "", link_url: "", link_type: "url", bisne_handle: "" });
+    loadPromos();
+  }, [promoForm, promos.length, showToast, loadPromos]);
+
+  const togglePromo = useCallback(async (promo) => {
+    const supabase = createClient();
+    const { error } = await supabase.from("site_promos").update({ active: !promo.active }).eq("id", promo.id);
+    if (error) {
+      showToast("Sin permisos para editar (service_role)", "warning");
+      return;
+    }
+    setPromos((prev) => prev.map((p) => (p.id === promo.id ? { ...p, active: !p.active } : p)));
+  }, [showToast]);
+
+  const deletePromo = useCallback(async (promo) => {
+    const supabase = createClient();
+    const { error } = await supabase.from("site_promos").delete().eq("id", promo.id);
+    if (error) {
+      showToast("Sin permisos para eliminar (service_role)", "warning");
+      return;
+    }
+    setPromos((prev) => prev.filter((p) => p.id !== promo.id));
+    showToast("Promo eliminada");
+  }, [showToast]);
+
+  const addAd = useCallback(async () => {
+    if (!adForm.image_url.trim()) {
+      showToast("La imagen del anuncio es obligatoria", "warning");
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase.from("ad_slots").upsert({
+      slot: adForm.slot,
+      image_url: adForm.image_url.trim(),
+      link_url: adForm.link_url.trim(),
+      title: adForm.title.trim() || "Publicidad",
+      active: true,
+    }, { onConflict: "slot" });
+    if (error) {
+      showToast("No se pudo guardar el anuncio (requiere service_role)", "warning");
+      return;
+    }
+    showToast("Anuncio guardado");
+    setAdForm({ slot: "home-top", image_url: "", link_url: "", title: "" });
+  }, [adForm, showToast]);
 
   const setSuspended = useCallback(async (bisne, suspended) => {
     setActingId(bisne.id);
@@ -214,8 +314,85 @@ export default function AdminPage() {
         )}
       </section>
 
+      {/* Promos globales del sitio (slider de la Home) */}
+      <section className="admin-section">
+        <h2 className="panel-section-title">
+          Promos globales del sitio
+          <span className="perfil-section-count">{promos.length}</span>
+        </h2>
+        <p className="admin-note" style={{ marginBottom: "0.75rem" }}>
+          <Icon name="info" size={13} /> Aparecen en el slider de la Home (1 horizontal + 2 cuadradas + mini-slider). Se muestran a todos los usuarios.
+        </p>
+
+        {promos.length > 0 && (
+          <div className="admin-bisne-list">
+            {promos.map((promo) => (
+              <div key={promo.id} className="admin-bisne-row">
+                <div className="admin-bisne-logo" style={{ borderRadius: 8, overflow: "hidden" }}>
+                  {promo.image_url && <SafeImage src={promo.image_url} alt="" width={36} height={36} style={{ objectFit: "cover" }} />}
+                </div>
+                <div className="admin-bisne-info">
+                  <strong>{promo.title || "Sin título"}</strong>
+                  <span>{promo.link_type === "bisne" ? `/b/${promo.bisne_handle}` : promo.link_url || "sin enlace"}</span>
+                </div>
+                <div className="admin-bisne-actions">
+                  <button type="button" className="panel-btn-secondary" onClick={() => togglePromo(promo)}>
+                    {promo.active ? "Desactivar" : "Activar"}
+                  </button>
+                  <button type="button" className="panel-btn-secondary danger" onClick={() => deletePromo(promo)}>
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="admin-promo-form">
+          <input className="cinfo-input" type="text" placeholder="Título" value={promoForm.title} onChange={(e) => setPromoForm((p) => ({ ...p, title: e.target.value }))} />
+          <input className="cinfo-input" type="text" placeholder="Subtítulo (opcional)" value={promoForm.subtitle} onChange={(e) => setPromoForm((p) => ({ ...p, subtitle: e.target.value }))} />
+          <input className="cinfo-input" type="url" placeholder="URL de imagen *" value={promoForm.image_url} onChange={(e) => setPromoForm((p) => ({ ...p, image_url: e.target.value }))} />
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <select className="cinfo-input" value={promoForm.link_type} onChange={(e) => setPromoForm((p) => ({ ...p, link_type: e.target.value }))}>
+              <option value="url">Enlace externo</option>
+              <option value="bisne">Perfil de bisne</option>
+            </select>
+            {promoForm.link_type === "bisne" ? (
+              <input className="cinfo-input" type="text" placeholder="handle (sin @)" value={promoForm.bisne_handle} onChange={(e) => setPromoForm((p) => ({ ...p, bisne_handle: e.target.value }))} />
+            ) : (
+              <input className="cinfo-input" type="url" placeholder="https://…" value={promoForm.link_url} onChange={(e) => setPromoForm((p) => ({ ...p, link_url: e.target.value }))} />
+            )}
+          </div>
+          <button type="button" className="panel-btn-primary" onClick={addPromo}>
+            <Icon name="plus" size={12} /> Añadir promo
+          </button>
+        </div>
+      </section>
+
+      {/* Slots publicitarios (UI_UX.md §8) */}
+      <section className="admin-section">
+        <h2 className="panel-section-title">Slots publicitarios</h2>
+        <p className="admin-note" style={{ marginBottom: "0.75rem" }}>
+          <Icon name="info" size={13} /> Si un slot no tiene anuncio activo, muestra automáticamente una promo propia del sitio (fallback). Slots: home-top, home-mid, explorar.
+        </p>
+
+        <div className="admin-promo-form">
+          <select className="cinfo-input" value={adForm.slot} onChange={(e) => setAdForm((p) => ({ ...p, slot: e.target.value }))}>
+            <option value="home-top">Home · superior</option>
+            <option value="home-mid">Home · medio</option>
+            <option value="explorar">Explorar</option>
+          </select>
+          <input className="cinfo-input" type="url" placeholder="URL de imagen *" value={adForm.image_url} onChange={(e) => setAdForm((p) => ({ ...p, image_url: e.target.value }))} />
+          <input className="cinfo-input" type="url" placeholder="URL de destino" value={adForm.link_url} onChange={(e) => setAdForm((p) => ({ ...p, link_url: e.target.value }))} />
+          <input className="cinfo-input" type="text" placeholder="Título (alt)" value={adForm.title} onChange={(e) => setAdForm((p) => ({ ...p, title: e.target.value }))} />
+          <button type="button" className="panel-btn-primary" onClick={addAd}>
+            <Icon name="plus" size={12} /> Guardar anuncio
+          </button>
+        </div>
+      </section>
+
       <p className="admin-note">
-        <Icon name="info" size={13} /> Las acciones de moderación requieren policies de admin en la
+        <Icon name="info" size={13} /> Las acciones de moderación y publicidad requieren policies de admin en la
         base (o se aplican desde el dashboard de Supabase con service_role).
       </p>
     </main>

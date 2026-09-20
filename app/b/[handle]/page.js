@@ -35,6 +35,9 @@ export default async function StorePage({ params }) {
 
   if (!bisne) notFound();
 
+  // Banner fijable por el dueño (oferta | mapa | imagen) — UI_UX.md §2
+  const pinnedBanner = bisne.pinnedBanner || null;
+
   const products = allProducts.filter((p) => p.bisneId === bisne.id);
 
   // ── storeConfig por tienda: base del marketplace + datos del bisne ──
@@ -72,7 +75,7 @@ export default async function StorePage({ params }) {
 
   return (
     <StorePageClient
-      bisne={{ ...bisne, description: bisne.description || "" }}
+      bisne={{ ...bisne, description: bisne.description || "", pinnedBanner }}
       initialProducts={products}
       storeConfig={storeConfig}
     />

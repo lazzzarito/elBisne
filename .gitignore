@@ -42,6 +42,4 @@ yarn-error.log*
 next-env.d.ts
 
 # workspace and docs
-elBisne.code-workspace
-elBisne.af
-NEW.md
+build.md
