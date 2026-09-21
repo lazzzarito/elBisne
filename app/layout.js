@@ -1,7 +1,7 @@
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import TopNav from "@/components/navigation/TopNav";
-import BottomNav from "@/components/navigation/BottomNav";
+import GlobalDrawers from "@/components/GlobalDrawers";
 import ToastNotification from "@/components/ToastNotification";
 import Preloader from "@/components/Preloader";
 import { getStoreConfig } from "@/lib/products";
@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
         <AppProvider>
           <TopNav storeConfig={storeConfig} />
           <Preloader>{children}</Preloader>
-          <BottomNav />
+          <GlobalDrawers storeConfig={storeConfig} />
           <ToastNotification />
         </AppProvider>
       </body>

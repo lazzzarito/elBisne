@@ -21,7 +21,6 @@ export default function AdminPage() {
   const [actingId, setActingId] = useState(null);
   const [promos, setPromos] = useState([]);
   const [promoForm, setPromoForm] = useState({ title: "", subtitle: "", image_url: "", link_url: "", link_type: "url", bisne_handle: "" });
-  const [adForm, setAdForm] = useState({ slot: "home-top", image_url: "", link_url: "", title: "" });
 
   const isAdmin = isLoggedIn && user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
@@ -149,27 +148,6 @@ export default function AdminPage() {
     setPromos((prev) => prev.filter((p) => p.id !== promo.id));
     showToast("Promo eliminada");
   }, [showToast]);
-
-  const addAd = useCallback(async () => {
-    if (!adForm.image_url.trim()) {
-      showToast("La imagen del anuncio es obligatoria", "warning");
-      return;
-    }
-    const supabase = createClient();
-    const { error } = await supabase.from("ad_slots").upsert({
-      slot: adForm.slot,
-      image_url: adForm.image_url.trim(),
-      link_url: adForm.link_url.trim(),
-      title: adForm.title.trim() || "Publicidad",
-      active: true,
-    }, { onConflict: "slot" });
-    if (error) {
-      showToast("No se pudo guardar el anuncio (requiere service_role)", "warning");
-      return;
-    }
-    showToast("Anuncio guardado");
-    setAdForm({ slot: "home-top", image_url: "", link_url: "", title: "" });
-  }, [adForm, showToast]);
 
   const setSuspended = useCallback(async (bisne, suspended) => {
     setActingId(bisne.id);
@@ -369,30 +347,8 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {/* Slots publicitarios (UI_UX.md §8) */}
-      <section className="admin-section">
-        <h2 className="panel-section-title">Slots publicitarios</h2>
-        <p className="admin-note" style={{ marginBottom: "0.75rem" }}>
-          <Icon name="info" size={13} /> Si un slot no tiene anuncio activo, muestra automáticamente una promo propia del sitio (fallback). Slots: home-top, home-mid, explorar.
-        </p>
-
-        <div className="admin-promo-form">
-          <select className="cinfo-input" value={adForm.slot} onChange={(e) => setAdForm((p) => ({ ...p, slot: e.target.value }))}>
-            <option value="home-top">Home · superior</option>
-            <option value="home-mid">Home · medio</option>
-            <option value="explorar">Explorar</option>
-          </select>
-          <input className="cinfo-input" type="url" placeholder="URL de imagen *" value={adForm.image_url} onChange={(e) => setAdForm((p) => ({ ...p, image_url: e.target.value }))} />
-          <input className="cinfo-input" type="url" placeholder="URL de destino" value={adForm.link_url} onChange={(e) => setAdForm((p) => ({ ...p, link_url: e.target.value }))} />
-          <input className="cinfo-input" type="text" placeholder="Título (alt)" value={adForm.title} onChange={(e) => setAdForm((p) => ({ ...p, title: e.target.value }))} />
-          <button type="button" className="panel-btn-primary" onClick={addAd}>
-            <Icon name="plus" size={12} /> Guardar anuncio
-          </button>
-        </div>
-      </section>
-
       <p className="admin-note">
-        <Icon name="info" size={13} /> Las acciones de moderación y publicidad requieren policies de admin en la
+        <Icon name="info" size={13} /> Las acciones de moderación y promos requieren policies de admin en la
         base (o se aplican desde el dashboard de Supabase con service_role).
       </p>
     </main>

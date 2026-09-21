@@ -12,7 +12,7 @@ import SafeImage from "@/components/SafeImage";
 //  · bisne → perfil del bisne
 //  · url con enlace → enlace externo
 //  · url sin enlace pero con bisne_handle → perfil del bisne (fallback)
-//  · sin nada → Explorar
+//  · sin nada → Inicio
 function getPromoTarget(promo) {
   if (promo.link_type === "bisne" && promo.bisne_handle) {
     return { href: `/b/${promo.bisne_handle}`, external: false };
@@ -23,7 +23,7 @@ function getPromoTarget(promo) {
   }
   if (promo.link_url) return { href: promo.link_url, external: true };
   if (promo.bisne_handle) return { href: `/b/${promo.bisne_handle}`, external: false };
-  return { href: "/explorar", external: false };
+  return { href: "/", external: false };
 }
 
 function PromoLink({ promo, className, children, ...rest }) {

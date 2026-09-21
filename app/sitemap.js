@@ -31,12 +31,6 @@ export default async function sitemap() {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/explorar`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/tienda`,
       lastModified: new Date(),
       changeFrequency: "weekly",

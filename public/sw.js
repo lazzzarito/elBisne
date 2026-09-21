@@ -1,4 +1,4 @@
-const CACHE = "elbisne-v1";
+const CACHE = "elbisne-v2";
 const STATIC_ASSETS = ["/manifest.json", "/icons/icon-192x192.png", "/icons/icon-512x512.png"];
 
 self.addEventListener("install", (event) => {
@@ -42,13 +42,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // JS chunks: network-first to prevent stale chunk errors
-  if (url.pathname.startsWith("/_next/static/chunks/")) {
+  // JS chunks y CSS: network-first (los hashes cambian en cada build;
+  // servir CSS viejo desde cache-first rompe los estilos de la UI)
+  if (url.pathname.startsWith("/_next/static/chunks/") || url.pathname.startsWith("/_next/static/css/")) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  // Everything else (images, CSS, fonts, etc.): cache-first with network update
+  // Everything else (images, fonts, etc.): cache-first with network update
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetchPromise = fetch(request)

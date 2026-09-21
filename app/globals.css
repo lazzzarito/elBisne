@@ -22,6 +22,10 @@
   --radius-md: 16px;
   --radius-lg: 24px;
 
+  /* Modales globales (drawer inferior-derecho, igual que el carrito) */
+  --modal-width: min(40vw, 480px);
+  --modal-max: 480px;
+
 /* Fonts — System Stack */
   --font-sans: var(--font-inter), "Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
@@ -200,10 +204,18 @@ body {
   touch-action: none;
 }
 
+/* Anchos unificados con el drawer del carrito (min(32vw, 420px) a la derecha) */
+@media (min-width: 769px) {
+  .sort-modal-overlay {
+    justify-content: flex-end;
+    padding: 0 1rem 0 0;
+  }
+}
+
 .sort-modal-sheet {
    position: relative;
-   width: min(100%, 420px);
-   max-width: 420px;
+   width: 100%;
+   max-width: 100%;
    max-height: 80dvh;
    background: var(--bg-primary);
    border-radius: 24px 24px 0 0;
@@ -212,6 +224,13 @@ body {
    display: flex;
    flex-direction: column;
  }
+
+@media (min-width: 769px) {
+  .sort-modal-sheet {
+    width: var(--modal-width);
+    max-width: var(--modal-max);
+  }
+}
 
  .sort-modal-header {
    flex-shrink: 0;
@@ -278,17 +297,6 @@ body {
   border-color: var(--text-primary);
 }
 
-@media (min-width: 1024px) {
-  .sort-modal-overlay {
-    align-items: flex-end;
-    justify-content: flex-end;
-    padding: 0 1.5rem 0 0;
-  }
-
-  .sort-modal-sheet {
-    width: min(32vw, 420px);
-  }
-}
 
 .store-info-section {
   display: flex;
@@ -1095,7 +1103,7 @@ body {
   bottom: 0;
   left: auto;
   transform: translateY(100%);
-  width: min(32vw, 420px);
+  width: var(--modal-width);
   background: var(--bg-primary);
   z-index: 160;
   box-shadow: 0 -28px 70px rgba(0, 0, 0, 0.28);
@@ -1725,10 +1733,10 @@ body {
   touch-action: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
   .store-info-overlay {
     justify-content: flex-end;
-    padding: 0 1.5rem 0 0;
+    padding: 0 1rem 0 0;
   }
 }
 
@@ -1793,10 +1801,10 @@ body {
   display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
   .store-info-modal {
-    width: min(32vw, 420px);
-    max-width: 420px;
+    width: var(--modal-width);
+    max-width: var(--modal-max);
     border-radius: 24px 24px 0 0;
   }
 }
@@ -2300,14 +2308,14 @@ body {
   container-type: inline-size;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
   .product-modal-container {
     justify-content: flex-end;
-    padding: 0 1.5rem 0 0;
+    padding: 0 1rem 0 0;
   }
   .product-modal-card {
-    width: min(32vw, 420px);
-    max-width: 420px;
+    width: var(--modal-width);
+    max-width: var(--modal-max);
     border-radius: 24px 24px 0 0;
   }
 }
@@ -3609,42 +3617,9 @@ body {
   object-fit: cover;
 }
 
-.top-nav-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.top-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.top-nav-item:hover {
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
-}
-
-.top-nav-item.active {
-  color: var(--accent-green);
-  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
-}
-
 @media (max-width: 560px) {
   .top-nav-brand-name {
     display: none;
-  }
-
-  .top-nav-item {
-    padding: 0.5rem 0.75rem;
   }
 }
 
@@ -4355,6 +4330,7 @@ body {
 }
 
 .global-search-box .search-icon {
+  position: static; /* flex item: sin position:absolute el placeholder no queda debajo */
   color: var(--text-tertiary);
   display: inline-flex;
 }
@@ -5535,7 +5511,7 @@ body {
 .store-wizard-sheet {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 100%;
   max-height: 88dvh;
   background: var(--bg-primary);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -5545,14 +5521,16 @@ body {
   flex-direction: column;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 769px) {
   .store-wizard-overlay {
-    align-items: center;
+    justify-content: flex-end;
+    padding: 0 1rem 0 0;
   }
 
   .store-wizard-sheet {
-    border-radius: var(--radius-lg);
-    max-height: 85dvh;
+    width: var(--modal-width);
+    max-width: var(--modal-max);
+    max-height: 88dvh;
   }
 }
 
@@ -7712,115 +7690,7 @@ a.cart-bisne-name:hover {
    RE DISEÑO SOCIAL v2.0 (UI_UX.md)
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Bottom tab bar móvil (Fase B · píldora flotante, solo iconos) ── */
-.bottom-nav {
-  position: fixed;
-  bottom: calc(14px + env(safe-area-inset-bottom, 0));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 150;
-  max-width: calc(100vw - 24px);
-  background: var(--glass-bg);
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
-  box-shadow: var(--shadow-lg);
-  padding: 6px;
-}
-
-.bottom-nav-inner {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.bottom-nav-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  height: 46px;
-  min-width: 46px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s, background-color 0.2s;
-}
-
-.bottom-nav-item.active,
-.bottom-nav-item:active {
-  color: var(--accent-green);
-  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
-}
-
-.bottom-nav-icon {
-  position: relative;
-  display: inline-flex;
-  flex-shrink: 0;
-}
-
-/* Solo iconos: el texto solo se muestra en la pestaña activa,
-   expandido AL LADO del icono (nunca debajo) */
-.bottom-nav-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  transform: translateX(6px);
-  transition: max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bottom-nav-item.active .bottom-nav-label {
-  max-width: 96px;
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* El badge re-dispara la animación al cambiar la cantidad (remount vía key) */
-.bottom-nav-badge {
-  position: absolute;
-  top: -5px;
-  right: -10px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: var(--accent-green);
-  color: #fff;
-  font-size: 0.58rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  animation: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.5);
-}
-
-/* El TopNav se oculta en móvil (solo logo + acciones); bottom nav en desktop */
-@media (max-width: 1023px) {
-  .top-nav-tabs,
-  .top-nav-actions .top-nav-fav-btn {
-    display: none;
-  }
-
-  body {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0));
-  }
-}
-
-@media (min-width: 1024px) {
-  .bottom-nav {
-    display: none;
-  }
-}
-
+/* Sin bottom nav: el FAB del carrito (floating-cart-btn) y los iconos del TopNav cubren toda la navegacion global. */
 .top-nav-actions {
   display: flex;
   align-items: center;
@@ -7845,18 +7715,6 @@ a.cart-bisne-name:hover {
 .top-nav-fav-btn:hover {
   background: var(--bg-secondary);
   color: #e74c3c;
-}
-
-/* Escritorio: pestañas a la derecha, agrupadas con las acciones
-   (no pegadas al logo) */
-@media (min-width: 1024px) {
-  .top-nav-tabs {
-    margin-left: auto;
-  }
-
-  .top-nav-actions {
-    margin-left: 0.4rem;
-  }
 }
 
 /* ── Dropdown del buscador via portal (Fase D · sin solapes) ────── */
@@ -8361,16 +8219,10 @@ a.cart-bisne-name:hover {
   justify-content: center;
 }
 
-@media (min-width: 561px) {
-  .theme-inline-overlay {
-    align-items: center;
-  }
-}
-
 .theme-inline-sheet {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 100%;
   max-height: 85dvh;
   overflow-y: auto;
   background: var(--bg-primary);
@@ -8381,9 +8233,15 @@ a.cart-bisne-name:hover {
   gap: 1rem;
 }
 
-@media (min-width: 561px) {
+@media (min-width: 769px) {
+  .theme-inline-overlay {
+    justify-content: flex-end;
+    padding: 0 1rem 0 0;
+  }
+
   .theme-inline-sheet {
-    border-radius: var(--radius-lg);
+    width: var(--modal-width);
+    max-width: var(--modal-max);
   }
 }
 
@@ -9021,4 +8879,191 @@ a.cart-bisne-name:hover {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+/* ── Avatar de perfil en el TopNav (con sesión) ──────────────────── */
+.top-nav-avatar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.top-nav-avatar-btn:hover {
+  border-color: color-mix(in srgb, var(--accent-green) 50%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 18%, transparent);
+}
+
+.top-nav-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.top-nav-avatar-initials {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+/* ── Drawer de búsqueda (mismo diseño que el carrito) ────────────── */
+.search-drawer .search-drawer-body {
+  padding: 1rem 1.1rem 1.5rem;
+}
+
+.search-drawer .global-search-input {
+  font-size: 0.95rem;
+}
+
+.search-drawer .global-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  padding: 0.55rem 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-drawer .global-search-box:focus-within {
+  border-color: color-mix(in srgb, var(--accent-green) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 12%, transparent);
+}
+
+.search-drawer .search-icon {
+  display: inline-flex;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.search-drawer .clear-search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-drawer .clear-search-btn:hover {
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  color: var(--text-primary);
+}
+
+/* Versión compacta del buscador (popup): sin hero, más densa */
+.global-search--compact .global-search-hero {
+  display: none;
+}
+
+.global-search--compact .global-search-recent-chips {
+  margin-top: 0.75rem;
+}
+
+.global-search--compact .gs-live-results {
+  margin-top: 0.85rem;
+}
+
+/* ── Descubrimiento en el popup de búsqueda (estado vacío) ───────── */
+.search-discovery {
+  margin-top: 1.25rem;
+}
+
+.search-discovery + .search-discovery {
+  margin-top: 1.5rem;
+}
+
+.search-discovery-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.search-discovery-title svg {
+  color: var(--accent-green);
+}
+
+.search-drawer .gs-live-bisnes {
+  grid-template-columns: 1fr;
+}
+
+.search-drawer .gs-live-products {
+  gap: 0.45rem;
+}
+
+/* ── Drawer de autenticación (mismo diseño que el carrito) ───────── */
+.auth-drawer-body {
+  padding: 1.25rem 1.1rem 1.5rem;
+  overflow-y: auto;
+}
+
+/* ── QuickBuyModal: contenedor unificado con el drawer del carrito ── */
+.quickbuy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 220;
+  animation: fade-in 0.3s ease both;
+  touch-action: none;
+}
+
+/* Se abre sobre la ficha de producto (z 210): anclaje igual que el carrito */
+.quickbuy-modal {
+  position: fixed;
+  right: 1rem;
+  left: auto;
+  bottom: 0;
+  width: var(--modal-width);
+  max-width: 100%;
+  max-height: 95dvh;
+  background: var(--bg-primary);
+  z-index: 221;
+  box-shadow: 0 -28px 70px rgba(0, 0, 0, 0.28);
+  border-radius: 24px 24px 0 0;
+  animation: modal-slide-up 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  display: flex;
+  flex-direction: column;
+}
+
+.quickbuy-scroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .quickbuy-modal {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+  }
 }

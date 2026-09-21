@@ -121,8 +121,8 @@ export default function GlobalFavoritesModal({ storeConfig, onClose }) {
       <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
         Pulsa el corazón de cualquier producto para guardarlo aquí.
       </p>
-      <Link href="/explorar" className="perfil-empty-link" style={{ display: "inline-block", marginTop: "0.75rem" }}>
-        Explorar productos
+      <Link href="/" className="perfil-empty-link" style={{ display: "inline-block", marginTop: "0.75rem" }}>
+        Descubrir productos
       </Link>
     </div>
   ) : (

@@ -13,7 +13,6 @@ import { initPopupHistory } from "@/lib/popup-history";
 import { getChannelUrl, getDefaultChannel } from "@/lib/messaging";
 import { useBisneInfo } from "@/lib/use-bisne-info";
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
-const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: () => null });
 const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 const PromoModal = dynamic(() => import("@/components/PromoModal"), { ssr: false, loading: () => null });
 const OfferModal = dynamic(() => import("@/components/OfferModal"), { ssr: false, loading: () => null });
@@ -24,12 +23,7 @@ const FavoritesModal = dynamic(() => import("@/components/FavoritesModal"), { ss
 export default function CatalogContainer({ initialProducts, storeConfig, initialCategory = "all", bisneId }) {
   const {
     isClient,
-    cartItems,
     addToCart,
-    updateQty,
-    removeItem,
-    removeItems,
-    clearCart,
     favoriteIds,
     toggleFavorite,
     handleOrderComplete,
@@ -197,23 +191,25 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
   const [showFavorites, setShowFavorites] = useState(false);
 
   const footerRef = useRef(null);
-  const [isFooterVisible, setIsFooterVisible] = useState(false);
 
+  // El carrito vive en el layout: reportamos la visibilidad del footer para
+  // que su FAB mutar a "volver arriba" cuando este footer está a la vista.
   useEffect(() => {
     if (!isClient) return;
     const el = footerRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setIsFooterVisible(entry.isIntersecting),
+      ([entry]) => {
+        window.dispatchEvent(new CustomEvent("cart-footer-visibility", { detail: { visible: entry.isIntersecting } }));
+      },
       { threshold: 0.1 }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.dispatchEvent(new CustomEvent("cart-footer-visibility", { detail: { visible: false } }));
+    };
   }, [isClient]);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const handleAddToCart = useCallback((product, selectedOptions = null, qty = 1) => {
     addToCart(product, selectedOptions, qty);
@@ -384,18 +380,6 @@ export default function CatalogContainer({ initialProducts, storeConfig, initial
           </div>
         )}
       </main>
-
-      <Cart
-        cartItems={cartItems}
-        onUpdateQty={updateQty}
-        onRemoveItem={removeItem}
-        onRemoveItems={removeItems}
-        onClearCart={clearCart}
-        storeConfig={storeConfig}
-        onOrderComplete={handleOrderComplete}
-        isFooterVisible={isFooterVisible}
-        scrollToTop={scrollToTop}
-      />
 
       <ProductModal
         product={withStock(selectedProduct)}

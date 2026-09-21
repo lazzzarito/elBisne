@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import SitePromoSlider from "@/components/feed/SitePromoSlider";
-import AdSlot from "@/components/feed/AdSlot";
 import OffersSection from "@/components/feed/OffersSection";
 import RecommendationsFeed from "@/components/feed/RecommendationsFeed";
 import BusinessesNearby from "@/components/feed/BusinessesNearby";
@@ -16,19 +15,13 @@ import { useBisneInfo } from "@/lib/use-bisne-info";
 import { loadBisneIndex } from "@/lib/orders";
 
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
-const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: () => null });
 const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 
 const MAX_RECOMMENDED = 20; // cap para que el infinite scroll viva aquí sin infinito absurdo
 
-export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePromos, adSlots }) {
+export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePromos }) {
   const {
-    cartItems,
     addToCart,
-    updateQty,
-    removeItem,
-    removeItems,
-    clearCart,
     favoriteIds,
     toggleFavorite,
     handleOrderComplete,
@@ -76,15 +69,6 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
     addToCart(product, selectedOptions, qty);
   }, [addToCart]);
 
-  const ads = useMemo(() => {
-    const map = {};
-    (adSlots || []).forEach((a) => { map[a.slot] = a; });
-    return map;
-  }, [adSlots]);
-
-  const fallbackTop = (sitePromos || [])[0] || null;
-  const fallbackMid = (sitePromos || [])[1] || null;
-
   return (
     <>
       <main className="main-container home-feed" id="main-content">
@@ -105,10 +89,7 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
           bisneMap={bisneMap}
         />
 
-        {/* 4 · Publicidad (slot 1) */}
-        <AdSlot ad={ads["home-top"]} fallbackPromo={fallbackTop} position="top" />
-
-        {/* 5 · Productos recomendados (cap 20, infinite scroll) */}
+        {/* 4 · Productos recomendados (cap 20, infinite scroll) */}
         <RecommendationsFeed
           products={recommended}
           onAddToCart={handleAddToCart}
@@ -122,23 +103,11 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
         {/* 6 · Bisnes cerca de ti: mapa interactivo */}
         <MapSection bisnes={bisnes} storeConfig={storeConfig} showMapsLink={false} />
 
-        {/* 7 · Publicidad (slot 2) */}
-        <AdSlot ad={ads["home-mid"]} fallbackPromo={fallbackMid} position="mid" />
       </main>
 
       {/* 8 · Footer global del sitio (solo Home/Explorar) */}
       <SiteFooter storeConfig={storeConfig} />
       <LegalInfoModal storeConfig={storeConfig} />
-
-      <Cart
-        cartItems={cartItems}
-        onUpdateQty={updateQty}
-        onRemoveItem={removeItem}
-        onRemoveItems={removeItems}
-        onClearCart={clearCart}
-        storeConfig={storeConfig}
-        onOrderComplete={handleOrderComplete}
-      />
 
       <ProductModal
         product={withStock(selectedProduct)}

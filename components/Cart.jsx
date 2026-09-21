@@ -60,7 +60,7 @@ function groupByBisne(cartItems, bisneIndex) {
   });
 }
 
-export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveItems, onClearCart, storeConfig, onOrderComplete, isFooterVisible, scrollToTop, onEditItem }) {
+export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveItems, onClearCart, storeConfig, onOrderComplete, onEditItem }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -77,6 +77,9 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
   const [selectedBisneId, setSelectedBisneId] = useState(null);
   const [orderStatus, setOrderStatus] = useState("idle"); // idle | saving | saved | error
   const [orderError, setOrderError] = useState(null);
+  // El FAB muta a "volver arriba" cuando el footer de la página es visible
+  // (los catálogos lo reportan vía evento "cart-footer-visibility").
+  const [isFooterVisible, setFooterVisible] = useState(false);
   const enabledChannels = useMemo(() => getEnabledChannels(storeConfig), [storeConfig]);
   const prevOpen = useRef(isOpen);
 
@@ -196,20 +199,29 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
     setIsOpen(false);
   };
 
-  // Apertura externa desde la tab "Carrito" (BottomNav/TopNav)
+  // Apertura externa desde el botón flotante u otros botones de carrito
   useEffect(() => {
     const open = () => setIsOpen(true);
     window.addEventListener("open-cart", open);
     return () => window.removeEventListener("open-cart", open);
   }, []);
 
+  // Visibilidad del footer (catálogos con footer largo): FAB → scroll-top
+  useEffect(() => {
+    const onFooterVisibility = (e) => setFooterVisible(Boolean(e.detail?.visible));
+    window.addEventListener("cart-footer-visibility", onFooterVisibility);
+    return () => window.removeEventListener("cart-footer-visibility", onFooterVisibility);
+  }, []);
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
   const showingConfirm = confirmed && confirmedGroup;
   const itemsToShow = showingConfirm ? confirmedGroup.items : [];
 
-  // El FAB solo vive donde la navegación global está oculta (catálogos de
-  // tienda). En Home/Explorar el carrito está en TopNav/BottomNav y un FAB
-  // sería redundante.
-  const showFab = pathname.startsWith("/b/") || pathname.startsWith("/tienda");
+  // El carrito es global (layout) y el FAB es su único punto de acceso.
+  // Solo se oculta en páginas inmersivas ajenas a la compra.
+  const FAB_HIDDEN_PREFIXES = ["/auth", "/pedido/", "/panel", "/admin", "/mensajes", "/notificaciones"];
+  const showFab = !FAB_HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
 
   return (
     <>

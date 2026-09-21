@@ -5,17 +5,69 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
-import ProductCard from "@/components/ProductCard";
+import { searchItems } from "@/lib/search";
 import { FollowButton } from "@/components/profile/StoreProfileHeader";
 
 const MAX_PRODUCTS = 6;
 const MAX_BISNES = 4;
 const STORAGE_KEY = "elbisne_recent_searches";
 
-// Buscador en tiempo real corregido (UI_UX.md §5.1/§5.2):
+// Fila de producto reutilizable (resultados en vivo y secciones de descubrimiento)
+function ProductRow({ product, onPick }) {
+  return (
+    <button type="button" className="gs-live-product" onClick={onPick}>
+      <SafeImage src={product.image} alt={product.name} width={48} height={48} className="gs-live-product-img" />
+      <span className="gs-live-product-info">
+        <span className="gs-live-product-name">{product.name}</span>
+        <span className="gs-live-product-meta">{product.category} · ${product.priceUSD.toFixed(2)}</span>
+      </span>
+      <Icon name="arrow-up" style={{ transform: "rotate(90deg)" }} />
+    </button>
+  );
+}
+
+// Card de bisne reutilizable (resultados en vivo y secciones de descubrimiento)
+function BisneCard({ bisne, followable = false }) {
+  return (
+    <div className="business-card business-card-new">
+      <Link href={`/b/${bisne.handle}`} className="business-card-main">
+        <div className="business-card-logo">
+          {bisne.logoUrl ? (
+            <SafeImage src={bisne.logoUrl} alt={bisne.business_name} fill sizes="80px" className="business-card-logo-img" />
+          ) : (
+            <span className="business-card-initial">{bisne.business_name?.charAt(0) || "B"}</span>
+          )}
+        </div>
+        <div className="business-card-info">
+          <span className="business-card-name">
+            {bisne.business_name}
+            {bisne.verified && (
+              <span className="business-verified-badge" title="Verificado">
+                <Icon name="check" />
+              </span>
+            )}
+          </span>
+          {bisne.slogan && <span className="business-card-slogan">{bisne.slogan}</span>}
+          <span className="business-card-meta">
+            {bisne.category && <span>{bisne.category}</span>}
+            <span>{bisne.productCount} {bisne.productCount === 1 ? "producto" : "productos"}</span>
+          </span>
+        </div>
+      </Link>
+      {followable && (
+        <div className="business-card-follow">
+          <FollowButton bisneId={bisne.id} size="sm" withLabel={false} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Buscador global del marketplace (UI_UX.md §5.1/§5.2):
 //  · dropdown renderizado con createPortal (sin solapes, z-index controlado)
 //  · alturas fijas por tipo de resultado
-//  · los resultados alimentan la sección de resultados en vivo (productos + bisnes)
+//  · búsqueda tolerante (lib/search): sin tildes, plurales y tipeos
+//  · compact: versión para el popup de búsqueda (sin hero, más densa)
 export default function GlobalSearch({
   products,
   bisnes,
@@ -23,7 +75,10 @@ export default function GlobalSearch({
   onChange,
   onOpenProduct,
   onClear,
-  followable = false,
+  compact = false,
+  showDiscovery = false,
+  trends = [],
+  offers = [],
 }) {
   const [focused, setFocused] = useState(false);
   const [portalEl, setPortalEl] = useState(null);
@@ -61,7 +116,7 @@ export default function GlobalSearch({
   }, []);
 
   useEffect(() => {
-    if (!focused) return;
+    if (!focused || compact) return;
     updateRect();
     window.addEventListener("scroll", updateRect, true);
     window.addEventListener("resize", updateRect);
@@ -69,7 +124,7 @@ export default function GlobalSearch({
       window.removeEventListener("scroll", updateRect, true);
       window.removeEventListener("resize", updateRect);
     };
-  }, [focused, updateRect]);
+  }, [focused, compact, updateRect]);
 
   const saveSearch = (term) => {
     const clean = term.trim();
@@ -98,29 +153,33 @@ export default function GlobalSearch({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // ── Autocomplete local (tiempo real) ──
+  // ── Sugerencias en tiempo real con el motor tolerante (lib/search) ──
   const suggestions = useMemo(() => {
-    const clean = value.trim().toLowerCase();
-    if (!clean) return { products: [], bisnes: [] };
+    if (!value.trim()) return { products: [], bisnes: [] };
 
-    const p = products
-      .filter((prod) =>
-        `${prod.name} ${prod.category} ${prod.description || ""} ${prod.promo || ""}`.toLowerCase().includes(clean)
-      )
-      .slice(0, MAX_PRODUCTS);
+    const productMatches = searchItems(
+      products,
+      value,
+      (p) => [p.name, p.category, p.description || "", p.promo || ""]
+    ) || [];
+    const bisneMatches = searchItems(
+      bisnes,
+      value,
+      (b) => [b.business_name, b.slogan || "", b.category || "", b.handle || ""]
+    ) || [];
 
-    const b = bisnes
-      .filter((bisne) =>
-        `${bisne.business_name} ${bisne.slogan || ""} ${bisne.category || ""}`.toLowerCase().includes(clean)
-      )
-      .slice(0, MAX_BISNES);
-
-    return { products: p, bisnes: b };
+    return {
+      products: productMatches.slice(0, MAX_PRODUCTS).map((r) => r.item),
+      bisnes: bisneMatches.slice(0, MAX_BISNES).map((r) => r.item),
+    };
   }, [value, products, bisnes]);
 
   const suggestionCount = suggestions.products.length + suggestions.bisnes.length;
   const showingRecent = !value.trim() && recent.length > 0;
-  const showDropdown = focused && (showingRecent || suggestionCount > 0);
+  // En compact (popup de búsqueda) el dropdown flotante se desactiva: los
+  // resultados en vivo del cuerpo del popup hacen su papel y el flotante
+  // los tapaba/duplicaba.
+  const showDropdown = focused && !compact && (showingRecent || suggestionCount > 0);
 
   const submit = () => {
     const term = value.trim();
@@ -132,17 +191,18 @@ export default function GlobalSearch({
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       const all = [...suggestions.products, ...suggestions.bisnes];
-      if (highlighted >= 0 && all[highlighted]) {
-        e.preventDefault();
-        const item = all[highlighted];
-        if (item && item.business_name && item.handle) {
-          window.location.href = `/b/${item.handle}`;
-        } else if (item) {
-          saveSearch(item.name);
+      // Compact: sin dropdown visible, Enter abre el primer resultado.
+      const chosen = compact ? all[0] : highlighted >= 0 ? all[highlighted] : null;
+      if (chosen) {
+        if (chosen.business_name && chosen.handle) {
+          window.location.href = `/b/${chosen.handle}`;
+        } else {
+          saveSearch(chosen.name);
           setFocused(false);
           setHighlighted(-1);
-          onOpenProduct?.(item);
+          onOpenProduct?.(chosen);
         }
       } else {
         submit();
@@ -150,10 +210,10 @@ export default function GlobalSearch({
     } else if (e.key === "Escape") {
       setFocused(false);
       setHighlighted(-1);
-    } else if (e.key === "ArrowDown") {
+    } else if (e.key === "ArrowDown" && !compact) {
       e.preventDefault();
       setHighlighted((h) => (h + 1) % Math.max(1, suggestionCount));
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === "ArrowUp" && !compact) {
       e.preventDefault();
       setHighlighted((h) => (h - 1 + Math.max(1, suggestionCount)) % Math.max(1, suggestionCount));
     }
@@ -284,12 +344,22 @@ export default function GlobalSearch({
   const liveProducts = value.trim().length >= 2 ? suggestions.products.slice(0, 8) : [];
   const liveBisnes = value.trim().length >= 2 ? suggestions.bisnes.slice(0, 4) : [];
 
+  // Bisnes más recientes para la sección de descubrimiento del popup
+  const newBisnes = useMemo(
+    () => [...bisnes]
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 4),
+    [bisnes]
+  );
+
   return (
-    <div className="global-search" ref={rootRef}>
-      <div className="global-search-hero">
-        <h1 className="global-search-title">¿Qué buscas hoy?</h1>
-        <p className="global-search-sub">Productos y bisnes de toda la comunidad elBisne.</p>
-      </div>
+    <div className={`global-search${compact ? " global-search--compact" : ""}`} ref={rootRef}>
+      {!compact && (
+        <div className="global-search-hero">
+          <h1 className="global-search-title">¿Qué buscas hoy?</h1>
+          <p className="global-search-sub">Productos y bisnes de toda la comunidad elBisne.</p>
+        </div>
+      )}
 
       <div className="global-search-box" ref={boxRef}>
         <span className="search-icon">
@@ -315,7 +385,7 @@ export default function GlobalSearch({
 
       {dropdown}
 
-      {!focused && !value.trim() && recent.length > 0 && (
+      {(!focused || compact) && !value.trim() && recent.length > 0 && (
         <div className="global-search-recent-chips">
           <span className="gs-chips-label">Pulsa una búsqueda anterior:</span>
           {recent.slice(0, 5).map((term) => (
@@ -326,43 +396,13 @@ export default function GlobalSearch({
         </div>
       )}
 
-      {/* Resultados en vivo: productos + bisnes (sin salir de la página) */}
+      {/* Resultados en vivo: productos + bisnes (sin salir del popup) */}
       {value.trim().length >= 2 && (liveProducts.length > 0 || liveBisnes.length > 0) && (
         <div className="gs-live-results">
           {liveBisnes.length > 0 && (
             <div className="gs-live-bisnes">
               {liveBisnes.map((bisne) => (
-                <div key={bisne.id} className="business-card business-card-new">
-                  <Link href={`/b/${bisne.handle}`} className="business-card-main">
-                    <div className="business-card-logo">
-                      {bisne.logoUrl ? (
-                        <SafeImage src={bisne.logoUrl} alt={bisne.business_name} fill sizes="80px" className="business-card-logo-img" />
-                      ) : (
-                        <span className="business-card-initial">{bisne.business_name?.charAt(0) || "B"}</span>
-                      )}
-                    </div>
-                    <div className="business-card-info">
-                      <span className="business-card-name">
-                        {bisne.business_name}
-                        {bisne.verified && (
-                          <span className="business-verified-badge" title="Verificado">
-                            <Icon name="check" />
-                          </span>
-                        )}
-                      </span>
-                      {bisne.slogan && <span className="business-card-slogan">{bisne.slogan}</span>}
-                      <span className="business-card-meta">
-                        {bisne.category && <span>{bisne.category}</span>}
-                        <span>{bisne.productCount} productos</span>
-                      </span>
-                    </div>
-                  </Link>
-                  {followable && (
-                    <div className="business-card-follow">
-                      <FollowButton bisneId={bisne.id} size="sm" withLabel={false} />
-                    </div>
-                  )}
-                </div>
+                <BisneCard key={bisne.id} bisne={bisne} followable={compact} />
               ))}
             </div>
           )}
@@ -371,23 +411,59 @@ export default function GlobalSearch({
             <div className="gs-live-products">
               <div className="gs-live-label">Productos que coinciden</div>
               {liveProducts.map((prod) => (
-                <button
-                  key={prod.id}
-                  type="button"
-                  className="gs-live-product"
-                  onClick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }}
-                >
-                  <SafeImage src={prod.image} alt={prod.name} width={48} height={48} className="gs-live-product-img" />
-                  <span className="gs-live-product-info">
-                    <span className="gs-live-product-name">{prod.name}</span>
-                    <span className="gs-live-product-meta">{prod.category} · ${prod.priceUSD.toFixed(2)}</span>
-                  </span>
-                  <Icon name="arrow-up" style={{ transform: "rotate(90deg)" }} />
-                </button>
+                <ProductRow key={prod.id} product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {/* Descubrimiento (popup, sin búsqueda activa): tendencias, ofertas y
+          bisnes nuevos — el popup nunca queda vacío al abrirlo */}
+      {showDiscovery && !value.trim() && (
+        <>
+          {trends.length > 0 && (
+            <section className="search-discovery" aria-label="Tendencias">
+              <h3 className="search-discovery-title">
+                <Icon name="sparkles" size={13} />
+                Tendencias
+              </h3>
+              <div className="gs-live-products">
+                {trends.slice(0, 6).map((prod) => (
+                  <ProductRow key={prod.id} product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {offers.length > 0 && (
+            <section className="search-discovery" aria-label="Ofertas">
+              <h3 className="search-discovery-title">
+                <Icon name="banknote" size={13} />
+                Ofertas
+              </h3>
+              <div className="gs-live-products">
+                {offers.slice(0, 4).map((prod) => (
+                  <ProductRow key={prod.id} product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {newBisnes.length > 0 && (
+            <section className="search-discovery" aria-label="Bisnes nuevos">
+              <h3 className="search-discovery-title">
+                <Icon name="shopping-bag" size={13} />
+                Bisnes nuevos
+              </h3>
+              <div className="gs-live-bisnes">
+                {newBisnes.map((bisne) => (
+                  <BisneCard key={bisne.id} bisne={bisne} followable={compact} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );
