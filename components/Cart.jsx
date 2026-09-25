@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { usePathname } from "next/navigation";
+import { useApp } from "@/context/AppContext";
 import SafeImage from "@/components/SafeImage";
-import { lockBodyScroll } from "@/lib/scroll-lock";
-import { useHistoryPopup } from "@/lib/use-history-popup";
+import { lockBodyScroll } from "@/lib/scroll-lock";import { useHistoryPopup } from "@/lib/use-history-popup";
 import { useFocusTrap } from "@/lib/use-focus-trap";
 import { getChannelUrl, getDefaultChannel, getEnabledChannels, buildOrderMessage, getDeliveryMode } from "@/lib/messaging";
 import { loadBisneIndex, buildBisneStoreConfig, createOrder } from "@/lib/orders";
@@ -62,6 +62,7 @@ function groupByBisne(cartItems, bisneIndex) {
 
 export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveItems, onClearCart, storeConfig, onOrderComplete, onEditItem }) {
   const pathname = usePathname();
+  const { storeChrome } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [showSummary, setShowSummary] = useState(false);
@@ -219,12 +220,31 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
   const itemsToShow = showingConfirm ? confirmedGroup.items : [];
 
   // El carrito es global (layout) y el FAB es su único punto de acceso.
-  // Solo se oculta en páginas inmersivas ajenas a la compra.
-  const FAB_HIDDEN_PREFIXES = ["/auth", "/pedido/", "/panel", "/admin", "/mensajes", "/notificaciones"];
-  const showFab = !FAB_HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
+  // Solo se oculta en páginas inmersivas ajenas a la compra. En el perfil del
+  // dueño el FAB pasa a ser "Publicar producto"; para el visitante se mantiene.
+  const FAB_HIDDEN_PREFIXES = ["/auth", "/pedido/", "/panel", "/admin", "/notificaciones"];
+  const isStoreOwner = Boolean(storeChrome?.active) && Boolean(storeChrome?.isOwner);
+  const showFab = !FAB_HIDDEN_PREFIXES.some((p) => pathname.startsWith(p)) && !isStoreOwner;
+  const showPublishFab = isStoreOwner && !FAB_HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
 
   return (
     <>
+      {showPublishFab && (
+        <button
+          className="floating-cart-btn owner-publish-fab"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-publish-product"))}
+          title="Publicar producto"
+        >
+          <span className="cart-btn-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </span>
+          <span className="cart-btn-text">Publicar producto</span>
+        </button>
+      )}
+
       {showFab && (
         <button
           className={`floating-cart-btn${isFooterVisible ? " scroll-top" : ""}`}
@@ -251,13 +271,15 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
 
       <div className={`cart-drawer ${isOpen ? "open" : ""}`} ref={cartRef}>
         <div className="cart-header">
-          <h2>{confirmed ? "¡Pedido confirmado!" : "Tu Carrito"}</h2>
-          {!confirmed && cartItems.length > 0 && (
-            <div className="cart-step-pill">
-              <button className={`pill-btn${step === 1 ? " active" : ""}`} onClick={() => setStep(1)}>Carrito</button>
-              <button className={`pill-btn${step === 2 ? " active" : ""}`} onClick={() => setStep(2)}>Detalles</button>
-            </div>
+          {!confirmed && cartItems.length > 0 && step === 2 && (
+            <button className="cart-header-back" onClick={() => setStep(1)} aria-label="Volver al carrito">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
           )}
+          <h2>{confirmed ? "¡Pedido confirmado!" : !confirmed && cartItems.length > 0 && step === 2 ? "Detalles" : "Tu Carrito"}</h2>
           <button className="modal-close" onClick={handleClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -389,7 +411,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
                   <div className="cart-bisne-group" key={group.bisneId || "sin-bisne"}>
                     <div className="cart-bisne-header">
                       {group.handle ? (
-                        <a href={`/b/${group.handle}`} className="cart-bisne-name" onClick={(e) => { e.preventDefault(); window.location.href = `/b/${group.handle}`; }}>
+                        <a href={`/${group.handle}`} className="cart-bisne-name" onClick={(e) => { e.preventDefault(); window.location.href = `/${group.handle}`; }}>
                           <Icon name="shopping-bag" size={13} />
                           {group.name || "Tienda"}
                         </a>

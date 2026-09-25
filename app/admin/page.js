@@ -223,7 +223,7 @@ export default function AdminPage() {
                 </div>
                 <div className="admin-bisne-info">
                   <strong>{b.business_name}</strong>
-                  <span>/b/{b.handle}</span>
+                  <span>/{b.handle}</span>
                 </div>
                 <div className="admin-bisne-actions">
                   <button
@@ -234,7 +234,7 @@ export default function AdminPage() {
                   >
                     <Icon name="check" size={12} /> Verificar
                   </button>
-                  <Link href={`/b/${b.handle}`} className="panel-btn-secondary">Revisar</Link>
+                  <Link href={`/${b.handle}`} className="panel-btn-secondary">Revisar</Link>
                 </div>
               </div>
             ))}
@@ -264,7 +264,7 @@ export default function AdminPage() {
                     {b.verified && <span className="business-verified-badge" title="Verificada"><Icon name="check" size={11} /></span>}
                     {b.suspended && <span className="admin-suspended-chip">Suspendida</span>}
                   </strong>
-                  <span>/b/{b.handle}</span>
+                  <span>/{b.handle}</span>
                 </div>
                 <div className="admin-bisne-actions">
                   <button
@@ -311,7 +311,7 @@ export default function AdminPage() {
                 </div>
                 <div className="admin-bisne-info">
                   <strong>{promo.title || "Sin título"}</strong>
-                  <span>{promo.link_type === "bisne" ? `/b/${promo.bisne_handle}` : promo.link_url || "sin enlace"}</span>
+                  <span>{promo.link_type === "bisne" ? `/${promo.bisne_handle}` : promo.link_url || "sin enlace"}</span>
                 </div>
                 <div className="admin-bisne-actions">
                   <button type="button" className="panel-btn-secondary" onClick={() => togglePromo(promo)}>

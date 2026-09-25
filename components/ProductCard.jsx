@@ -4,8 +4,9 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
+import Ticker from "@/components/Ticker";
 
-export default function ProductCard({ product, onAddToCart, onOpenDetails, priority, isFavorited = false, onToggleFavorite, index = 0, showBisne = false, bisneInfo }) {
+export default function ProductCard({ product, onAddToCart, onOpenDetails, priority, isFavorited = false, onToggleFavorite, index = 0, showBisne = false, bisneInfo, onEditProduct }) {
   const { name, priceUSD, originalPrice, category, image, description, ratioClass } = product;
   const hasDiscount = originalPrice != null && originalPrice > priceUSD;
   const hasOptions = product.options && Object.keys(product.options).length > 0;
@@ -62,20 +63,32 @@ export default function ProductCard({ product, onAddToCart, onOpenDetails, prior
         >
           {isFavorited ? <Icon name="heart-filled" /> : <Icon name="heart-outline" />}
         </button>
+        {onEditProduct && (
+          <button
+            className="product-card-edit"
+            onClick={(e) => { e.stopPropagation(); onEditProduct(product); }}
+            aria-label={`Editar ${name}`}
+            title="Editar producto"
+          >
+            <Icon name="edit" size={14} />
+          </button>
+        )}
       </div>
       <div className="product-card-info">
-        <span className="product-card-category">{category}</span>
-        {showBisne && bisneInfo?.handle && (
-          <span className="product-card-bisne" title={`Vendido por ${bisneInfo.name}`}>
-            {bisneInfo.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={bisneInfo.logoUrl} alt="" width={14} height={14} style={{ borderRadius: "50%", objectFit: "cover" }} />
-            ) : (
-              <Icon name="shopping-bag" size={11} />
-            )}
-            {bisneInfo.name}
-          </span>
-        )}
+        <Ticker
+          className="product-card-meta"
+          title={showBisne && bisneInfo?.name ? `${category} · ${bisneInfo.name}` : category}
+        >
+          <span className="product-card-category">{category}</span>
+          {showBisne && bisneInfo?.handle && (
+            <>
+              <span className="product-card-meta-sep" aria-hidden="true">·</span>
+              <span className="product-card-bisne" title={`Vendido por ${bisneInfo.name}`}>
+                {bisneInfo.name}
+              </span>
+            </>
+          )}
+        </Ticker>
         <h3 className="product-card-title">{name}</h3>
         {description && <p className="product-card-desc">{description}</p>}
 

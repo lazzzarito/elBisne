@@ -7,6 +7,7 @@ import { useHistoryPopup } from "@/lib/use-history-popup";
 import { getChannelUrl, getDefaultChannel } from "@/lib/messaging";
 import StoreInfoCard from "@/components/StoreInfoCard";
 import Icon from "@/components/Icon";
+import StoreHeader from "@/components/profile/StoreHeader";
 
 export default function FilterHeader({
   categories,
@@ -21,6 +22,12 @@ export default function FilterHeader({
   onOpenFavorites,
   productCount,
   totalCount,
+  storeMode = false,
+  store = null,
+  isOwner = false,
+  onOpenStoreMenu = null,
+  onEditSection = null,
+  storeContactHref = null,
 }) {
   // ── Refs & UI state ──
   const navRef = useRef(null);
@@ -95,6 +102,22 @@ export default function FilterHeader({
           corazón global del TopNav. Este header se reduce a los filtros del
           catálogo de una tienda (carrusel de categorías + botón filtros),
           sin duplicar marca ni acciones globales (fin del doble header). */}
+      {storeMode && store ? (
+        <StoreHeader
+          store={store}
+          isOwner={isOwner}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          onOpenFavorites={onOpenFavorites}
+          onOpenStoreMenu={onOpenStoreMenu}
+          onOpenFilters={() => setShowSortMenu(true)}
+          onEditSection={onEditSection}
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategoryChange={onCategoryChange}
+          contactHref={storeContactHref}
+        />
+      ) : (
       <header className="catalog-filter-bar">
         <div className="category-nav-container" ref={navRef}>
           <nav className="category-nav">
@@ -126,6 +149,7 @@ export default function FilterHeader({
           <Icon name="filter" size={16} />
         </button>
       </header>
+      )}
 
       {/* ── Sort / filter bottom sheet ── */}
       {showSortMenu && (

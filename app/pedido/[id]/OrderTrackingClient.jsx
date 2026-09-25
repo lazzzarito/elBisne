@@ -39,7 +39,7 @@ export default function OrderTrackingClient({ order, bisne: bisneProp }) {
           <p className="order-tracking-label">Pedido</p>
           <h1 className="order-tracking-id">#{order.id.slice(0, 8).toUpperCase()}</h1>
           {bisne && (
-            <Link href={`/b/${bisne.handle}`} className="order-tracking-store">
+            <Link href={`/${bisne.handle}`} className="order-tracking-store">
               {bisne.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={bisne.logoUrl} alt="" width={20} height={20} style={{ borderRadius: "50%", objectFit: "cover" }} />

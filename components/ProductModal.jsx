@@ -8,8 +8,10 @@ import { useFocusTrap } from "@/lib/use-focus-trap";
 
 import Link from "next/link";
 import Icon from "@/components/Icon";
+import Ticker from "@/components/Ticker";
+import QuickBuyPanel from "@/components/QuickBuyPanel";
 
-export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onQuickBuy, productQty: productQtyProp = 1, onQtyChange, isFavorited = false, onToggleFavorite, bisneInfo }) {
+export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onOrderComplete, productQty: productQtyProp = 1, onQtyChange, isFavorited = false, onToggleFavorite, bisneInfo, onEditProduct }) {
   // ── Track active image index for gallery ──
   const [activeImage, setActiveImage] = useState(0);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -17,6 +19,8 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
   const [lastAddedQty, setLastAddedQty] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [internalQty, setInternalQty] = useState(1);
+  // ── "product" = ficha · "checkout" = compra directa dentro del mismo modal ──
+  const [view, setView] = useState("product");
 
   // Cantidad controlada (padre) o local si no se pasa onQtyChange
   const isControlledQty = typeof onQtyChange === "function";
@@ -26,10 +30,12 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
     else setInternalQty(qty);
   };
 
-  // Reset derivado en render cuando cambia el producto (patrón oficial React)
-  const [lastProduct, setLastProduct] = useState(product);
-  if (product !== lastProduct) {
-    setLastProduct(product);
+  // Reset derivado en render cuando cambia el producto (patrón oficial React).
+  // Comparamos por id: un refresh de stock devuelve un objeto nuevo del MISMO
+  // producto y no debe resetear la vista (p. ej. el resumen tras comprar).
+  const [lastProductId, setLastProductId] = useState(product?.id ?? null);
+  if ((product?.id ?? null) !== lastProductId) {
+    setLastProductId(product?.id ?? null);
     const defaults = {};
     if (product) {
       if (product.options) {
@@ -42,6 +48,7 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
       setSelectedOptions(defaults);
       setActiveImage(0);
       setInternalQty(1);
+      setView("product");
     }
   }
 
@@ -141,9 +148,13 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
   };
 
   const handleDirectBuy = () => {
-    // Guard: si el anfitrión no provee checkout rápido, no rompemos —
-    // el usuario siempre puede añadir al carrito y pagar desde ahí.
-    onQuickBuy?.({ ...product, selectedOptions, quantity: productQty });
+    // El propio modal se transforma en la vista de compra directa.
+    setView("checkout");
+  };
+
+  const handleBack = () => {
+    if (view === "checkout") setView("product");
+    else onClose();
   };
 
   return (
@@ -152,12 +163,17 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
       <div className="product-modal-container" ref={modalRef}>
         <div className="product-modal-card">
           <div className="product-modal-header-bar">
-            <button className="product-modal-back-btn" onClick={onClose} aria-label="Atrás">
+            <button className="product-modal-back-btn" onClick={handleBack} aria-label={view === "checkout" ? "Volver al producto" : "Atrás"}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
             <div className="product-modal-header-actions">
+              {onEditProduct && (
+                <button className="btn-header-edit" onClick={() => onEditProduct(product)} aria-label="Editar producto" title="Editar producto">
+                  <Icon name="edit" size={16} />
+                </button>
+              )}
               <button className="btn-header-share" onClick={handleShare} aria-label="Compartir">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
@@ -178,6 +194,23 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
             </div>
           </div>
 
+          {view === "checkout" ? (
+            <QuickBuyPanel
+              key={product.id}
+              product={product}
+              storeConfig={storeConfig}
+              qty={productQty}
+              maxQty={maxQty}
+              onQtyChange={handleQtyChange}
+              selectedOptions={selectedOptions}
+              onOptionChange={handleOptionSelect}
+              activePrice={activePrice}
+              activeImage={productImages[activeImage]}
+              onClose={onClose}
+              onOrderComplete={onOrderComplete}
+            />
+          ) : (
+            <>
           <div className="product-modal-scroll-content">
             <div className="product-modal-content">
               <div className="product-modal-image-col">
@@ -216,31 +249,32 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
               </div>
 
               <div className="product-modal-info-col">
-                <span className="product-card-category">{category}</span>
+                <Ticker
+                  className="product-modal-meta"
+                  title={bisneInfo?.handle ? `${category} · ${bisneInfo.name}` : category}
+                >
+                  <span className="product-card-category">{category}</span>
+                  {bisneInfo?.handle && (
+                    <>
+                      <span className="product-card-meta-sep" aria-hidden="true">·</span>
+                      <Link
+                        href={`/${bisneInfo.handle}`}
+                        className="product-modal-bisne"
+                        onClick={onClose}
+                        title={`Ver tienda de ${bisneInfo.name}`}
+                      >
+                        <span>{bisneInfo.name}</span>
+                        {bisneInfo.verified && (
+                          <span className="business-verified-badge" title="Tienda verificada">
+                            <Icon name="check" size={10} />
+                          </span>
+                        )}
+                        <Icon name="arrow-up" size={11} style={{ transform: "rotate(45deg)" }} />
+                      </Link>
+                    </>
+                  )}
+                </Ticker>
                 <h2 className="product-modal-title">{name}</h2>
-
-                {bisneInfo?.handle && (
-                  <Link
-                    href={`/b/${bisneInfo.handle}`}
-                    className="product-modal-bisne"
-                    onClick={onClose}
-                    title={`Ver tienda de ${bisneInfo.name}`}
-                  >
-                    {bisneInfo.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={bisneInfo.logoUrl} alt="" width={18} height={18} style={{ borderRadius: "50%", objectFit: "cover" }} />
-                    ) : (
-                      <Icon name="shopping-bag" size={13} />
-                    )}
-                    <span>{bisneInfo.name}</span>
-                    {bisneInfo.verified && (
-                      <span className="business-verified-badge" title="Tienda verificada">
-                        <Icon name="check" size={10} />
-                      </span>
-                    )}
-                    <Icon name="arrow-up" size={11} style={{ transform: "rotate(45deg)" }} />
-                  </Link>
-                )}
 
                 <div className="product-modal-prices">
                   {hasDiscount && (
@@ -373,6 +407,8 @@ export default function ProductModal({ product, onClose, onAddToCart, storeConfi
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
 

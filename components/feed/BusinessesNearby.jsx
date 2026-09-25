@@ -1,68 +1,27 @@
 "use client";
 
-import Link from "next/link";
-import SafeImage from "@/components/SafeImage";
-import Icon from "@/components/Icon";
+import BusinessCard from "@/components/feed/BusinessCard";
 
+// "Bisnes para ti" (UI_UX.md §4.2): carrusel de bisnes recomendados.
+// Ranking por recomendación (rating + novedad), sin contador de productos.
 export default function BusinessesNearby({ bisnes }) {
   if (!bisnes || !bisnes.length) return null;
 
+  const sorted = [...bisnes].sort((a, b) => {
+    const ra = a.rating ?? -1;
+    const rb = b.rating ?? -1;
+    return rb - ra || String(b.createdAt || "").localeCompare(String(a.createdAt || ""));
+  });
+
   return (
-    <section className="businesses-carousel-section" aria-label="Bisnes cercanos">
+    <section className="businesses-carousel-section" aria-label="Bisnes recomendados">
       <h2 className="featured-title">
         Bisnes para ti
         <span className="featured-title-line" />
       </h2>
       <div className="businesses-carousel">
-        {bisnes.map((bisne) => (
-          <Link
-            key={bisne.id}
-            href={`/b/${bisne.handle}`}
-            className="business-card"
-          >
-            <div className="business-card-logo">
-              {bisne.logoUrl ? (
-                <SafeImage
-                  src={bisne.logoUrl}
-                  alt={bisne.business_name}
-                  fill
-                  sizes="80px"
-                  className="business-card-logo-img"
-                />
-              ) : (
-                <span className="business-card-initial">
-                  {bisne.business_name?.charAt(0) || "B"}
-                </span>
-              )}
-            </div>
-            <div className="business-card-info">
-              <span className="business-card-name">
-                {bisne.business_name}
-                {bisne.verified && (
-                  <span className="business-verified-badge" title="Verificado">
-                    <Icon name="check" />
-                  </span>
-                )}
-              </span>
-              {bisne.slogan && <span className="business-card-slogan">{bisne.slogan}</span>}
-              <span className="business-card-meta">
-                {bisne.rating !== null && (
-                  <span className="business-card-rating" title={`${bisne.rating.toFixed(1)} estrellas`}>
-                    <Icon name="star" />
-                    {bisne.rating.toFixed(1)}
-                  </span>
-                )}
-                <span className="business-card-products">
-                  {bisne.productCount} {bisne.productCount === 1 ? "producto" : "productos"}
-                </span>
-                {bisne.address && (
-                  <span className="business-card-address">
-                    <Icon name="map-pin" /> {bisne.address}
-                  </span>
-                )}
-              </span>
-            </div>
-          </Link>
+        {sorted.map((bisne) => (
+          <BusinessCard key={bisne.id} bisne={bisne} followable />
         ))}
       </div>
     </section>

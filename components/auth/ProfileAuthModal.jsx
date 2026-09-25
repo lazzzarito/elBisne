@@ -47,7 +47,7 @@ export default function ProfileAuthModal() {
 
       <div className={`cart-drawer ${isOpen ? "open" : ""}`} ref={drawerRef} role="dialog" aria-modal="true" aria-label="Iniciar sesión o crear cuenta">
         <div className="cart-header">
-          <h2>Tu cuenta</h2>
+          <h2>Únete a elBisne</h2>
           <button className="modal-close" onClick={close} aria-label="Cerrar">
             <Icon name="close" size={18} />
           </button>

@@ -30,7 +30,7 @@ export function StoreInfoItem({ icon, strong, children, href, onClick }) {
   );
 }
 
-export default function StoreInfoCard({ storeConfig, showHowToBuy = false, onOpenLegal }) {
+export default function StoreInfoCard({ storeConfig, showHowToBuy = false, onOpenLegal, hideContact = false }) {
   const [selectedChannel, setSelectedChannel] = useState(
     () => typeof window !== "undefined" ? (localStorage.getItem("elbisne_channel") || getDefaultChannel(storeConfig)) : getDefaultChannel(storeConfig)
   );
@@ -78,44 +78,46 @@ export default function StoreInfoCard({ storeConfig, showHowToBuy = false, onOpe
         </StoreInfoItem>
       )}
 
-      <div className="store-info-item channel-contact-item" ref={contactRef}>
-        <a href={channelContact("Hola, tengo una pregunta sobre sus productos")} target="_blank" rel="noopener noreferrer" className="store-info-item-link">
-          <Icon name={selectedChannel} />
-          <div>
-            <strong>{channelLabel}</strong>
-            <p>{channelValue()}</p>
-          </div>
-        </a>
-        {enabledChannels.length > 1 && (
-          <button className="channel-contact-toggle" onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }} aria-label="Cambiar canal">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-        )}
-        {dropdownOpen && (
-          <div className="channel-split-dropdown">
-            {enabledChannels.map((ch) => (
-              <button key={ch.id} className={`channel-split-option${selectedChannel === ch.id ? " active" : ""}`} onClick={() => handleChannelChange(ch.id)}>
-                <Icon name={ch.icon} />
-                {ch.label}
-                {selectedChannel === ch.id && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: "auto" }}>
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {!hideContact && (
+        <div className="store-info-item channel-contact-item" ref={contactRef}>
+          <a href={channelContact("Hola, tengo una pregunta sobre sus productos")} target="_blank" rel="noopener noreferrer" className="store-info-item-link">
+            <Icon name={selectedChannel} />
+            <div>
+              <strong>{channelLabel}</strong>
+              <p>{channelValue()}</p>
+            </div>
+          </a>
+          {enabledChannels.length > 1 && (
+            <button className="channel-contact-toggle" onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }} aria-label="Cambiar canal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          )}
+          {dropdownOpen && (
+            <div className="channel-split-dropdown">
+              {enabledChannels.map((ch) => (
+                <button key={ch.id} className={`channel-split-option${selectedChannel === ch.id ? " active" : ""}`} onClick={() => handleChannelChange(ch.id)}>
+                  <Icon name={ch.icon} />
+                  {ch.label}
+                  {selectedChannel === ch.id && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: "auto" }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-      <StoreInfoItem icon="clock" strong="Horario" href={channelContact("Hola, me gustaría saber su horario de atención")}>
+      <StoreInfoItem icon="clock" strong="Horario" href={hideContact ? undefined : channelContact("Hola, me gustaría saber su horario de atención")}>
         {storeConfig.businessHours || "Lunes - Sábado, 9:00 AM — 6:00 PM"}
       </StoreInfoItem>
 
       {deliveryMode !== "none" && (
-        <StoreInfoItem icon="truck" strong="Entregas" href={channelContact("Hola, necesito información sobre los envíos")}>
+        <StoreInfoItem icon="truck" strong="Entregas" href={hideContact ? undefined : channelContact("Hola, necesito información sobre los envíos")}>
           {storeConfig.deliveriesInfo || "Envíos coordinados en la zona"}
         </StoreInfoItem>
       )}

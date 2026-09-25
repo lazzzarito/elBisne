@@ -7,7 +7,7 @@ import SitePromoSlider from "@/components/feed/SitePromoSlider";
 import OffersSection from "@/components/feed/OffersSection";
 import RecommendationsFeed from "@/components/feed/RecommendationsFeed";
 import BusinessesNearby from "@/components/feed/BusinessesNearby";
-import MapSection from "@/components/map/MapSection";
+import BusinessesNearLocation from "@/components/feed/BusinessesNearLocation";
 import SiteFooter from "@/components/feed/SiteFooter";
 import LegalInfoModal from "@/components/LegalInfoModal";
 import { useApp } from "@/context/AppContext";
@@ -15,7 +15,6 @@ import { useBisneInfo } from "@/lib/use-bisne-info";
 import { loadBisneIndex } from "@/lib/orders";
 
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
-const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 
 const MAX_RECOMMENDED = 20; // cap para que el infinite scroll viva aquí sin infinito absurdo
 
@@ -30,7 +29,6 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
   } = useApp();
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickBuyProduct, setQuickBuyProduct] = useState(null);
   const selectedBisneInfo = useBisneInfo(selectedProduct?.bisneId);
   const [bisneMap, setBisneMap] = useState(null);
 
@@ -100,8 +98,8 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
           bisneMap={bisneMap}
         />
 
-        {/* 6 · Bisnes cerca de ti: mapa interactivo */}
-        <MapSection bisnes={bisnes} storeConfig={storeConfig} showMapsLink={false} />
+        {/* 6 · Bisnes cerca de ti (orden por ubicación real del usuario) */}
+        <BusinessesNearLocation bisnes={bisnes} />
 
       </main>
 
@@ -114,23 +112,11 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
         storeConfig={storeConfig}
-        onQuickBuy={setQuickBuyProduct}
+        onOrderComplete={handleOrderComplete}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
         bisneInfo={selectedBisneInfo}
       />
-
-      {quickBuyProduct && (
-        <QuickBuyModal
-          product={quickBuyProduct}
-          onClose={() => setQuickBuyProduct(null)}
-          onOrderComplete={() => {
-            handleOrderComplete();
-            setSelectedProduct(null);
-          }}
-          storeConfig={storeConfig}
-        />
-      )}
     </>
   );
 }

@@ -19,7 +19,7 @@ const slugifyHandle = (v) =>
 
 const FALLBACK_CATEGORIES = ["Ropa", "Comida", "Tecnología", "Hogar", "Belleza", "Otros"];
 
-export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
+export default function ActivateStoreWizard({ user, storeConfig, onCreated, existing = null }) {
   const router = useRouter();
   const { showToast } = useApp();
   const [open, setOpen] = useState(false);
@@ -32,13 +32,16 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
   const [coverUploading, setCoverUploading] = useState(false);
 
   const [form, setForm] = useState({
-    businessName: "",
-    handle: "",
-    whatsapp: "",
+    businessName: existing?.business_name || "",
+    handle: existing?.handle || "",
+    whatsapp: existing?.phone_whatsapp || "",
     categorySlug: "",
-    slogan: "",
+    slogan: existing?.slogan || "",
   });
   const [touched, setTouched] = useState({});
+
+  // Al abrir sobre un perfil personal existente, sus datos ya quedarán
+  // precargados vía el estado inicial; el key fuerza remontaje si cambia.
 
   // Cerrar popup con historial del navegador
   useHistoryPopup(open, () => setOpen(false));
@@ -136,19 +139,21 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
     try {
       const supabase = createClient();
 
-      // Verificar disponibilidad del handle antes de insertar
-      const { data: taken } = await supabase
-        .from("bisnes")
-        .select("handle")
-        .eq("handle", form.handle)
-        .maybeSingle();
-      if (taken) {
-        setError(`El enlace @${form.handle} ya está en uso. Prueba con otro.`);
-        setSubmitting(false);
-        return;
+      // Verificar disponibilidad del handle antes de insertar (solo al crear)
+      if (!existing) {
+        const { data: taken } = await supabase
+          .from("bisnes")
+          .select("handle")
+          .eq("handle", form.handle)
+          .maybeSingle();
+        if (taken) {
+          setError(`El enlace @${form.handle} ya está en uso. Prueba con otro.`);
+          setSubmitting(false);
+          return;
+        }
       }
 
-      const coverUrl = await uploadCover(supabase, form.handle);
+      const coverUrl = existing ? null : await uploadCover(supabase, form.handle);
 
       // Buscar category_id a partir del slug (opcional)
       let categoryId = null;
@@ -161,22 +166,50 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
         categoryId = cat?.id || null;
       }
 
-      const { data: inserted, error: insertErr } = await supabase
-        .from("bisnes")
-        .insert({
-          owner_id: user.id,
-          handle: form.handle,
-          business_name: form.businessName.trim(),
-          slogan: form.slogan.trim() || null,
-          phone_whatsapp: form.whatsapp.trim(),
-          category_id: categoryId,
-          cover_url: coverUrl,
-          delivery_mode: "both",
-        })
-        .select("id, handle, business_name, logo_url, cover_url, delivery_mode, verified")
-        .single();
-
-      if (insertErr) throw insertErr;
+      let inserted;
+      if (existing) {
+        // Conversión: el perfil personal pasa a tienda completa (mismo handle)
+        const { data: updated, error: upErr } = await supabase
+          .from("bisnes")
+          .update({
+            business_name: form.businessName.trim(),
+            slogan: form.slogan.trim() || null,
+            phone_whatsapp: form.whatsapp.trim(),
+            category_id: categoryId,
+            type: "business",
+          })
+          .eq("id", existing.id)
+          .select("id, handle, business_name, logo_url, cover_url, delivery_mode, verified, type")
+          .single();
+        if (upErr) throw upErr;
+        inserted = updated;
+        // Al pasar a tienda, los productos dejan de caducar
+        await supabase.from("products").update({ expires_at: null }).eq("bisne_id", existing.id);
+        if (coverUrl) {
+          const { error: cvErr } = await supabase
+            .from("bisnes")
+            .update({ cover_url: coverUrl })
+            .eq("id", existing.id);
+          if (cvErr) throw cvErr;
+        }
+      } else {
+        const { data: ins, error: insertErr } = await supabase
+          .from("bisnes")
+          .insert({
+            owner_id: user.id,
+            handle: form.handle,
+            business_name: form.businessName.trim(),
+            slogan: form.slogan.trim() || null,
+            phone_whatsapp: form.whatsapp.trim(),
+            category_id: categoryId,
+            cover_url: coverUrl,
+            delivery_mode: "both",
+          })
+          .select("id, handle, business_name, logo_url, cover_url, delivery_mode, verified")
+          .single();
+        if (insertErr) throw insertErr;
+        inserted = ins;
+      }
 
       const newBisne = {
         id: inserted.id,
@@ -187,9 +220,11 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
         coverUrl: inserted.cover_url || null,
         deliveryMode: inserted.delivery_mode || "both",
         verified: !!inserted.verified,
+        type: inserted.type || "business",
       };
 
-      showToast("¡Tu tienda está activa! 🎉");
+      showToast(existing ? "¡Tu perfil ahora es una tienda completa! 🎉" : "¡Tu tienda está activa! 🎉");
+      window.dispatchEvent(new Event("elbisne:my-bisne-changed"));
       close();
       if (typeof onCreated === "function") onCreated(newBisne);
       // Refrescar la ruta para que el catálogo/SSG recoja la nueva tienda
@@ -217,7 +252,7 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
       </button>
 
       {open && (
-        <div className="store-wizard-overlay" onClick={close}>
+        <div className="store-wizard-overlay" key={existing?.id || "wizard-new"} onClick={close}>
           <div
             className="store-wizard-sheet"
             role="dialog"
@@ -234,7 +269,7 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
             <div className="store-wizard-scroll">
               {/* Progreso */}
               <div className="store-wizard-header">
-                <h2 className="store-wizard-title">Activa tu tienda</h2>
+                <h2 className="store-wizard-title">{existing ? "Convierte tu perfil en tienda" : "Activa tu tienda"}</h2>
                 <div className="store-wizard-steps" aria-label={`Paso ${step} de 2`}>
                   <span className={`store-wizard-step${step >= 1 ? " active" : ""}`} />
                   <span className={`store-wizard-step${step >= 2 ? " active" : ""}`} />
@@ -268,19 +303,23 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
                   <div className="cinfo-field">
                     <label className="cinfo-label">Enlace de tu tienda *</label>
                     <div className="store-wizard-handle-input">
-                      <span className="store-wizard-handle-prefix">elbisne.app/b/</span>
+                      <span className="store-wizard-handle-prefix">elbisne.app/</span>
                       <input
                         className={`cinfo-input${errors.handle && touched.handle ? " error" : ""}`}
                         type="text"
                         placeholder="dulces-maria"
                         value={form.handle}
                         maxLength={20}
+                        disabled={Boolean(existing)}
                         onChange={(e) => setField("handle", slugifyHandle(e.target.value))}
                         onBlur={() => setTouched((p) => ({ ...p, handle: true }))}
                       />
                     </div>
                     {errors.handle && touched.handle && (
                       <span className="cinfo-error">{errors.handle}</span>
+                    )}
+                    {existing && (
+                      <span className="cinfo-help">El enlace de tu perfil personal se mantiene.</span>
                     )}
                   </div>
 
@@ -347,6 +386,7 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
                     />
                   </div>
 
+                  {!existing && (
                   <div className="cinfo-field">
                     <label className="cinfo-label">Portada (opcional)</label>
                     <label className="store-wizard-cover-picker">
@@ -383,8 +423,16 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
                       </button>
                     )}
                   </div>
+                )}
 
-                  <div className="store-wizard-actions">
+                {existing && (
+                  <p className="panel-form-note">
+                    <Icon name="sparkles" size={12} /> Al convertir en tienda completa desbloqueas ofertas, reseñas,
+                    verificación y catálogo sin caducidad. Tus productos se conservan.
+                  </p>
+                )}
+
+                <div className="store-wizard-actions">
                     <button type="button" className="store-wizard-back" onClick={() => setStep(1)}>
                       <Icon name="arrow-left" size={14} />
                       Atrás
@@ -399,7 +447,9 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated }) {
                         ? "Subiendo portada…"
                         : submitting
                           ? "Activando…"
-                          : "Activar mi tienda"}
+                          : existing
+                            ? "Convertir en tienda completa"
+                            : "Activar mi tienda"}
                     </button>
                   </div>
                 </div>

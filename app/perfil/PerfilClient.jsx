@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import MasonryGrid from "@/components/MasonryGrid";
@@ -19,8 +18,6 @@ const TABS = [
   { id: "tiendas", label: "Tiendas seguidas", icon: "explore" },
   { id: "pedidos", label: "Mis pedidos", icon: "shopping-bag" },
 ];
-
-const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 
 const DELIVERY_LABELS = {
   pickup: "Recojo en tienda",
@@ -113,7 +110,7 @@ function FollowedStoresTab() {
     <div className="followed-list">
       {stores.map((store) => (
         <div key={store.id} className="followed-row">
-          <Link href={`/b/${store.handle}`} className="followed-link">
+          <Link href={`/${store.handle}`} className="followed-link">
             <span className="followed-logo">
               {store.logoUrl ? (
                 <SafeImage src={store.logoUrl} alt={store.name} width={44} height={44} className="followed-logo-img" />
@@ -131,7 +128,7 @@ function FollowedStoresTab() {
                 )}
               </span>
               {store.slogan && <span className="followed-slogan">{store.slogan}</span>}
-              <span className="followed-handle">/b/{store.handle}</span>
+              <span className="followed-handle">/{store.handle}</span>
             </span>
           </Link>
           <button
@@ -196,7 +193,7 @@ function MyOrdersTab() {
           <div className="order-row-info">
             <span className="order-row-bisne">
               {order.bisnes?.business_name || "Tienda"}
-              {order.bisnes?.handle && <span className="order-row-handle"> /b/{order.bisnes.handle}</span>}
+              {order.bisnes?.handle && <span className="order-row-handle"> /{order.bisnes.handle}</span>}
             </span>
             <span className="order-row-items">
               {Array.isArray(order.items) ? order.items.length : 0} {Array.isArray(order.items) && order.items.length === 1 ? "artículo" : "artículos"}
@@ -222,7 +219,6 @@ export default function PerfilClient({ products, storeConfig }) {
   const router = useRouter();
   const { isLoggedIn, user, authLoading, signOut, favoriteIds, toggleFavorite, addToCart, showToast, withStock, handleOrderComplete } = useApp();
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickBuyProduct, setQuickBuyProduct] = useState(null);
   const [activeTab, setActiveTab] = useState("guardados");
   // null = sin tienda; undefined = aún cargando (sentinela)
   const [myBisne, setMyBisne] = useState(undefined);
@@ -236,7 +232,7 @@ export default function PerfilClient({ products, storeConfig }) {
     const supabase = createClient();
     supabase
       .from("bisnes")
-      .select("id, handle, business_name, slogan, logo_url, cover_url, delivery_mode, verified")
+      .select("id, handle, business_name, slogan, logo_url, cover_url, delivery_mode, verified, type, phone_whatsapp")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -247,12 +243,16 @@ export default function PerfilClient({ products, storeConfig }) {
                 id: data.id,
                 handle: data.handle,
                 businessName: data.business_name,
+                business_name: data.business_name,
                 slogan: data.slogan || "",
                 logoUrl: data.logo_url || null,
                 coverUrl: data.cover_url || null,
                 deliveryMode: data.delivery_mode || "both",
                 verified: !!data.verified,
                 hasPanel: true,
+                type: data.type || "business",
+                isPersonal: data.type === "personal",
+                phone_whatsapp: data.phone_whatsapp || "",
               }
             : null
         );
@@ -322,11 +322,42 @@ export default function PerfilClient({ products, storeConfig }) {
         </button>
       </header>
 
-      {/* Tienda del usuario (si ya activó una) — acceso inline al perfil de tienda */}
+      {/* Perfil del usuario (si ya activó uno) — acceso inline al perfil de tienda */}
       {myBisne !== null && (
-        <section className="perfil-section perfil-bisne-section" aria-label="Tu tienda">
+        <section className="perfil-section perfil-bisne-section" aria-label={myBisne?.isPersonal ? "Tu perfil personal" : "Tu tienda"}>
           {myBisne === undefined ? (
-            <div className="perfil-store-placeholder" aria-busy="true">Cargando tu tienda…</div>
+            <div className="perfil-store-placeholder" aria-busy="true">Cargando tu perfil…</div>
+          ) : myBisne.isPersonal ? (
+            <div className="profile-store-card">
+              <div className="profile-store-row">
+                <div className="profile-store-logo">
+                  {myBisne.logoUrl ? (
+                    <SafeImage src={myBisne.logoUrl} alt={myBisne.businessName} width={48} height={48} className="profile-store-logo-img" />
+                  ) : (
+                    <span className="profile-store-initial">{initialsOf(myBisne.businessName)}</span>
+                  )}
+                </div>
+                <div className="profile-store-info">
+                  <h3 className="profile-store-name">
+                    {myBisne.businessName}
+                    <span className="personal-chip">Perfil personal</span>
+                  </h3>
+                  <p className="profile-store-handle">@{myBisne.handle} · productos con validez de 30 días</p>
+                </div>
+                <div className="profile-store-links">
+                  <Link href={`/${myBisne.handle}`} className="profile-store-link">
+                    Ver mi perfil público
+                    <Icon name="arrow-up" size={13} style={{ transform: "rotate(45deg)" }} />
+                  </Link>
+                </div>
+              </div>
+              <div className="personal-upgrade">
+                <p className="personal-upgrade-text">
+                  ¿Quieres vender como tienda completa? Desbloquea ofertas flash, reseñas y catálogo sin caducidad.
+                </p>
+                <ActivateStoreWizard user={user} storeConfig={storeConfig} existing={myBisne} onCreated={handleCreated} />
+              </div>
+            </div>
           ) : (
             <div className="profile-store-card">
               {myBisne.coverUrl && (
@@ -354,7 +385,7 @@ export default function PerfilClient({ products, storeConfig }) {
                   <p className="profile-store-handle">@{myBisne.handle}</p>
                 </div>
                 <div className="profile-store-links">
-                  <Link href={`/b/${myBisne.handle}`} className="profile-store-link">
+                  <Link href={`/${myBisne.handle}`} className="profile-store-link">
                     Ver mi perfil de tienda
                     <Icon name="arrow-up" size={13} style={{ transform: "rotate(45deg)" }} />
                   </Link>
@@ -366,16 +397,28 @@ export default function PerfilClient({ products, storeConfig }) {
       )}
 
       {myBisne === null && (
-        <section className="perfil-section perfil-bisne-section" aria-label="Activa tu tienda">
+        <section className="perfil-section perfil-bisne-section" aria-label="Crea tu perfil o tienda">
           <div className="perfil-store-cta">
             <p className="perfil-store-cta-text">
-              ¿Vendes algo? Publica tu catálogo, recibe pedidos por WhatsApp y llega a miles de compradores.
+              Crea un perfil personal para publicar productos con validez de 30 días, o activa una tienda
+              completa con ofertas, reseñas y catálogo ilimitado. Los pedidos llegan por WhatsApp.
             </p>
-            <ActivateStoreWizard
-              user={user}
-              storeConfig={storeConfig}
-              onCreated={handleCreated}
-            />
+            <div className="perfil-cta-grid">
+              <Link href="/panel/productos" className="perfil-cta-card">
+                <span className="perfil-cta-card-icon"><Icon name="user" size={20} /></span>
+                <strong className="perfil-cta-card-title">Publica productos gratis</strong>
+                <span className="perfil-cta-card-desc">
+                  Perfil personal: solo productos, con validez de 30 días. Sin ofertas ni valoraciones.
+                </span>
+              </Link>
+              <div className="perfil-cta-card wizard">
+                <ActivateStoreWizard
+                  user={user}
+                  storeConfig={storeConfig}
+                  onCreated={handleCreated}
+                />
+              </div>
+            </div>
           </div>
         </section>
       )}
@@ -442,22 +485,10 @@ export default function PerfilClient({ products, storeConfig }) {
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
         storeConfig={storeConfig}
-        onQuickBuy={setQuickBuyProduct}
+        onOrderComplete={handleOrderComplete}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
       />
-
-      {quickBuyProduct && (
-        <QuickBuyModal
-          product={quickBuyProduct}
-          onClose={() => setQuickBuyProduct(null)}
-          onOrderComplete={() => {
-            handleOrderComplete();
-            setSelectedProduct(null);
-          }}
-          storeConfig={storeConfig}
-        />
-      )}
     </main>
   );
 }

@@ -48,7 +48,7 @@ async function main() {
     );
     const json = res.ok ? await res.json() : null;
     if (res.ok && json?.length > 0) {
-      console.log(`✅ "${u.title}" → /b/${u.bisne_handle}`);
+      console.log(`✅ "${u.title}" → /${u.bisne_handle}`);
     } else {
       console.error(`❌ "${u.title}": ${res.status} ${JSON.stringify(json)?.slice(0, 120)}`);
       process.exitCode = 1;

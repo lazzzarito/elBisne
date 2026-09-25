@@ -6,7 +6,6 @@ import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
 import { searchItems } from "@/lib/search";
-import { FollowButton } from "@/components/profile/StoreProfileHeader";
 
 const MAX_PRODUCTS = 6;
 const MAX_BISNES = 4;
@@ -26,41 +25,28 @@ function ProductRow({ product, onPick }) {
   );
 }
 
-// Card de bisne reutilizable (resultados en vivo y secciones de descubrimiento)
-function BisneCard({ bisne, followable = false }) {
+// Rueda de producto en mini-tarjeta para los sliders de descubrimiento
+// (imagen + nombre + precio), sin salir del popup.
+function ProductSliderCard({ product, onPick }) {
   return (
-    <div className="business-card business-card-new">
-      <Link href={`/b/${bisne.handle}`} className="business-card-main">
-        <div className="business-card-logo">
-          {bisne.logoUrl ? (
-            <SafeImage src={bisne.logoUrl} alt={bisne.business_name} fill sizes="80px" className="business-card-logo-img" />
-          ) : (
-            <span className="business-card-initial">{bisne.business_name?.charAt(0) || "B"}</span>
-          )}
-        </div>
-        <div className="business-card-info">
-          <span className="business-card-name">
-            {bisne.business_name}
-            {bisne.verified && (
-              <span className="business-verified-badge" title="Verificado">
-                <Icon name="check" />
-              </span>
-            )}
-          </span>
-          {bisne.slogan && <span className="business-card-slogan">{bisne.slogan}</span>}
-          <span className="business-card-meta">
-            {bisne.category && <span>{bisne.category}</span>}
-            <span>{bisne.productCount} {bisne.productCount === 1 ? "producto" : "productos"}</span>
-          </span>
-        </div>
-      </Link>
-      {followable && (
-        <div className="business-card-follow">
-          <FollowButton bisneId={bisne.id} size="sm" withLabel={false} />
-        </div>
-      )}
-    </div>
+    <button type="button" className="gs-slider-product" onClick={onPick}>
+      <span className="gs-slider-product-thumb">
+        <SafeImage src={product.image} alt={product.name} width={80} height={80} className="gs-slider-product-img" />
+      </span>
+      <span className="gs-slider-product-name">{product.name}</span>
+      <span className="gs-slider-product-price">
+        {product.currencySymbol || "$"}{product.priceUSD.toFixed(2)}
+      </span>
+    </button>
   );
+}
+
+// Card de bisne reutilizable (resultados en vivo y secciones de descubrimiento)
+// Reusa el diseño global estilo IG (business-card-ig): centrado, sin contador.
+import BusinessCard from "@/components/feed/BusinessCard";
+
+function BisneCard({ bisne, followable = false }) {
+  return <BusinessCard bisne={bisne} followable={followable} showRating={false} />;
 }
 
 // Buscador global del marketplace (UI_UX.md §5.1/§5.2):
@@ -197,7 +183,7 @@ export default function GlobalSearch({
       const chosen = compact ? all[0] : highlighted >= 0 ? all[highlighted] : null;
       if (chosen) {
         if (chosen.business_name && chosen.handle) {
-          window.location.href = `/b/${chosen.handle}`;
+          window.location.href = `/${chosen.handle}`;
         } else {
           saveSearch(chosen.name);
           setFocused(false);
@@ -303,7 +289,7 @@ export default function GlobalSearch({
                 return (
                   <Link
                     key={bisne.id}
-                    href={`/b/${bisne.handle}`}
+                    href={`/${bisne.handle}`}
                     className={`gs-suggestion gs-suggestion-bisne${highlighted === idx ? " highlighted" : ""}`}
                     onMouseEnter={() => setHighlighted(idx)}
                     onClick={() => setFocused(false)}
@@ -419,7 +405,7 @@ export default function GlobalSearch({
       )}
 
       {/* Descubrimiento (popup, sin búsqueda activa): tendencias, ofertas y
-          bisnes nuevos — el popup nunca queda vacío al abrirlo */}
+          bisnes nuevos como sliders horizontales — el popup nunca queda vacío */}
       {showDiscovery && !value.trim() && (
         <>
           {trends.length > 0 && (
@@ -428,23 +414,27 @@ export default function GlobalSearch({
                 <Icon name="sparkles" size={13} />
                 Tendencias
               </h3>
-              <div className="gs-live-products">
-                {trends.slice(0, 6).map((prod) => (
-                  <ProductRow key={prod.id} product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
+              <div className="gs-slider">
+                {trends.slice(0, 10).map((prod) => (
+                  <div key={prod.id} className="gs-slider-item">
+                    <ProductSliderCard product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
+                  </div>
                 ))}
               </div>
             </section>
           )}
 
           {offers.length > 0 && (
-            <section className="search-discovery" aria-label="Ofertas">
+            <section className="search-discovery" aria-label="En oferta">
               <h3 className="search-discovery-title">
                 <Icon name="banknote" size={13} />
-                Ofertas
+                En Oferta
               </h3>
-              <div className="gs-live-products">
-                {offers.slice(0, 4).map((prod) => (
-                  <ProductRow key={prod.id} product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
+              <div className="gs-slider">
+                {offers.slice(0, 8).map((prod) => (
+                  <div key={prod.id} className="gs-slider-item">
+                    <ProductSliderCard product={prod} onPick={() => { saveSearch(prod.name); onOpenProduct?.(prod); }} />
+                  </div>
                 ))}
               </div>
             </section>
@@ -456,9 +446,11 @@ export default function GlobalSearch({
                 <Icon name="shopping-bag" size={13} />
                 Bisnes nuevos
               </h3>
-              <div className="gs-live-bisnes">
+              <div className="gs-slider">
                 {newBisnes.map((bisne) => (
-                  <BisneCard key={bisne.id} bisne={bisne} followable={compact} />
+                  <div key={bisne.id} className="gs-slider-item">
+                    <BisneCard bisne={bisne} followable={compact} />
+                  </div>
                 ))}
               </div>
             </section>

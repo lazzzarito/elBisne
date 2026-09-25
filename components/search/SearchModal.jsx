@@ -11,29 +11,34 @@ import GlobalSearch from "@/components/search/GlobalSearch";
 import Icon from "@/components/Icon";
 
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
-const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 
 // ── Popup de búsqueda (mismo drawer que el carrito) ──────────────────────
 // El icono de buscador del TopNav abre este bottom-sheet con la sección de
 // búsqueda que antes vivía en /explorar. Se monta una vez en el layout y
 // escucha el evento "open-search" (mismo patrón que el carrito).
 export default function SearchModal({ storeConfig }) {
-  const { addToCart, withStock, favoriteIds, toggleFavorite, handleOrderComplete } = useApp();
+  const { addToCart, withStock, favoriteIds, toggleFavorite, handleOrderComplete, salesMap } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [catalog, setCatalog] = useState(null); // { products, bisnes } | null = cargando
   const [query, setQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickBuyProduct, setQuickBuyProduct] = useState(null);
   const loadAttempted = useRef(false);
 
   // Secciones de descubrimiento del popup (estado sin búsqueda):
-  //  · Tendencias: productos en campaña promocional (fallback: destacados)
+  //  · Tendencias: productos en campaña promocional → destacados → top ventas
   //  · Ofertas: productos rebajados de verdad (offer + precio original mayor)
   const trends = useMemo(() => {
     if (!catalog) return [];
+    const sm = salesMap || {};
     const promo = catalog.products.filter((p) => p.promo);
-    return promo.length > 0 ? promo : catalog.products.filter((p) => p.featured);
-  }, [catalog]);
+    if (promo.length > 0) return promo;
+    const featured = catalog.products.filter((p) => p.featured);
+    if (featured.length > 0) return featured;
+    // Fallback final: los más vendidos, para que el popup nunca quede vacío.
+    return [...catalog.products]
+      .sort((a, b) => (Number(sm[b.id]) || 0) - (Number(sm[a.id]) || 0))
+      .slice(0, 8);
+  }, [catalog, salesMap]);
   const offers = useMemo(() => {
     if (!catalog) return [];
     return catalog.products.filter((p) => p.offer && p.originalPrice && p.originalPrice > p.priceUSD);
@@ -63,8 +68,8 @@ export default function SearchModal({ storeConfig }) {
 
   // Mientras el ProductModal está abierto sobre el drawer, el drawer "cede":
   // se oculta y vuelve a abrirse al cerrar la ficha (mantiene el contexto).
-  useHistoryPopup(isOpen && !selectedProduct && !quickBuyProduct, close);
-  const drawerRef = useFocusTrap(isOpen && !selectedProduct && !quickBuyProduct);
+  useHistoryPopup(isOpen && !selectedProduct, close);
+  const drawerRef = useFocusTrap(isOpen && !selectedProduct);
 
   const handleOpenProduct = (product) => {
     setIsOpen(false);
@@ -73,15 +78,14 @@ export default function SearchModal({ storeConfig }) {
 
   const handleCloseProduct = () => {
     setSelectedProduct(null);
-    setQuickBuyProduct(null);
     setIsOpen(true);
   };
 
   return (
     <>
-      <div className={`cart-overlay ${isOpen && !selectedProduct && !quickBuyProduct ? "open" : ""}`} onClick={close} />
+      <div className={`cart-overlay ${isOpen && !selectedProduct ? "open" : ""}`} onClick={close} />
 
-      <div className={`cart-drawer search-drawer ${isOpen && !selectedProduct && !quickBuyProduct ? "open" : ""}`} ref={drawerRef} role="dialog" aria-modal="true" aria-label="Buscar en elBisne">
+      <div className={`cart-drawer search-drawer ${isOpen && !selectedProduct ? "open" : ""}`} ref={drawerRef} role="dialog" aria-modal="true" aria-label="Buscar en elBisne">
         <div className="cart-header">
           <h2>Buscar</h2>
           <button className="modal-close" onClick={close} aria-label="Cerrar buscador">
@@ -118,23 +122,10 @@ export default function SearchModal({ storeConfig }) {
         onClose={handleCloseProduct}
         onAddToCart={addToCart}
         storeConfig={storeConfig}
-        onQuickBuy={(p, opts, q) => { setQuickBuyProduct({ ...p, quantity: q }); }}
+        onOrderComplete={handleOrderComplete}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
       />
-
-      {quickBuyProduct && (
-        <QuickBuyModal
-          product={quickBuyProduct}
-          onClose={() => { setQuickBuyProduct(null); setIsOpen(true); }}
-          onOrderComplete={() => {
-            handleOrderComplete();
-            setQuickBuyProduct(null);
-            setIsOpen(true);
-          }}
-          storeConfig={storeConfig}
-        />
-      )}
     </>
   );
 }

@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { getAllBisneHandles, getBisneByHandle } from "@/lib/store";
 import { getProducts, getStoreConfig } from "@/lib/products";
-import StorePageClient from "./StorePageClient";
+import { getCollectionsByBisne } from "@/lib/collections";
+import StorePageClient from "../b/[handle]/StorePageClient";
 
 export const revalidate = 60;
 
@@ -25,6 +26,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// Página pública de tienda en la raíz (UI_UX.md §4.6):/{handle}
+// El antiguo prefijo /b/{handle} redirige aquí (301).
 export default async function StorePage({ params }) {
   const { handle } = await params;
   const [bisne, allProducts, baseStoreConfig] = await Promise.all([
@@ -39,6 +42,10 @@ export default async function StorePage({ params }) {
   const pinnedBanner = bisne.pinnedBanner || null;
 
   const products = allProducts.filter((p) => p.bisneId === bisne.id);
+  const collections = await getCollectionsByBisne(bisne.id);
+  const banners = (Array.isArray(bisne.banners) ? bisne.banners : [])
+    .filter((b) => b && b.image_url)
+    .slice(0, 5);
 
   // ── storeConfig por tienda: base del marketplace + datos del bisne ──
   const promoPairs = (baseStoreConfig.promoLinks || []).map((link, i) => ({
@@ -75,8 +82,9 @@ export default async function StorePage({ params }) {
 
   return (
     <StorePageClient
-      bisne={{ ...bisne, description: bisne.description || "", pinnedBanner }}
+      bisne={{ ...bisne, description: bisne.description || "", pinnedBanner, banners }}
       initialProducts={products}
+      initialCollections={collections}
       storeConfig={storeConfig}
     />
   );

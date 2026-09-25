@@ -17,7 +17,7 @@ export default async function sitemap() {
   // Tiendas públicas de cada Bisne (Fase 10 · SEO extendido)
   const handles = await getAllBisneHandles();
   const bisneUrls = handles.map((handle) => ({
-    url: `${baseUrl}/b/${handle}`,
+    url: `${baseUrl}/${handle}`,
     lastModified: new Date(),
     changeFrequency: "daily",
     priority: 0.9,

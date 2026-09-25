@@ -25,17 +25,23 @@ export function useMyBisne({ redirectToPerfil = true } = {}) {
     // Suscripción al "sistema externo" (Supabase): setState solo en callbacks
     if (!user || !isSupabaseConfigured()) return;
     let active = true;
-    const supabase = createClient();
-    supabase
-      .from("bisnes")
-      .select("*")
-      .eq("owner_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (active) setBisne(data || null);
-      });
+    const load = () => {
+      createClient()
+        .from("bisnes")
+        .select("*")
+        .eq("owner_id", user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (active) setBisne(data || null);
+        });
+    };
+    load();
+    // Refetch cuando otro flujo crea/convierte el bisne del usuario
+    const onChange = () => load();
+    window.addEventListener("elbisne:my-bisne-changed", onChange);
     return () => {
       active = false;
+      window.removeEventListener("elbisne:my-bisne-changed", onChange);
     };
   }, [user]);
 
@@ -49,10 +55,9 @@ export function useMyBisne({ redirectToPerfil = true } = {}) {
   return bisne; // undefined cargando · null sin tienda · objeto con tienda
 }
 
-export default function PanelLayout({ title, subtitle, actions = null, children }) {
-  const bisne = useMyBisne();
+export default function PanelLayout({ title, subtitle, actions = null, children, allowNoBisne = false }) {
+  const bisne = useMyBisne({ redirectToPerfil: !allowNoBisne });
   const pathname = usePathname();
-
 
   if (bisne === undefined) {
     return (
@@ -65,42 +70,56 @@ export default function PanelLayout({ title, subtitle, actions = null, children 
     );
   }
 
-  if (bisne === null) return null;
+  if (bisne === null && !allowNoBisne) return null;
+
+  // Perfiles personales: el panel solo ofrece Resumen / Pedidos / Productos.
+  const tabs =
+    bisne?.type === "personal"
+      ? TABS.filter((t) => t.href === "/panel" || t.href === "/panel/pedidos" || t.href === "/panel/productos")
+      : TABS;
 
   return (
     <main className="panel-page" id="main-content">
       <header className="panel-header">
         <div className="panel-store-row">
-          <div className="panel-store-logo">
-            {bisne.logo_url ? (
-              <SafeImage src={bisne.logo_url} alt={bisne.business_name} width={44} height={44} className="panel-store-logo-img" />
-            ) : (
-              <span className="profile-store-initial">{(bisne.business_name || "B").charAt(0)}</span>
-            )}
-          </div>
+          {bisne === null ? (
+            <div className="panel-store-logo">
+              <span className="profile-store-initial">{(title || "M").charAt(0)}</span>
+            </div>
+          ) : (
+            <div className="panel-store-logo">
+              {bisne.logo_url ? (
+                <SafeImage src={bisne.logo_url} alt={bisne.business_name} width={44} height={44} className="panel-store-logo-img" />
+              ) : (
+                <span className="profile-store-initial">{(bisne.business_name || "B").charAt(0)}</span>
+              )}
+            </div>
+          )}
           <div className="panel-store-info">
-            <h1 className="panel-title">{title || bisne.business_name}</h1>
-            {subtitle ? <p className="panel-subtitle">{subtitle}</p> : (
-              <p className="panel-subtitle">/b/{bisne.handle}</p>
+            <h1 className="panel-title">{title || (bisne?.business_name ?? "Mi perfil")}</h1>
+            {subtitle ? <p className="panel-subtitle">{subtitle}</p> : bisne && (
+              <p className="panel-subtitle">/{bisne.handle}</p>
             )}
           </div>
           {actions}
         </div>
-        <nav className="panel-tabs" aria-label="Secciones del panel">
-          {TABS.map((tab) => (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`panel-tab${(tab.href === "/panel" ? pathname === "/panel" : pathname.startsWith(tab.href)) ? " active" : ""}`}
-            >
-              <Icon name={tab.icon} size={14} />
-              {tab.label}
-            </Link>
-          ))}
-        </nav>
+        {bisne !== null && (
+          <nav className="panel-tabs" aria-label="Secciones del panel">
+            {tabs.map((tab) => (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`panel-tab${(tab.href === "/panel" ? pathname === "/panel" : pathname.startsWith(tab.href)) ? " active" : ""}`}
+              >
+                <Icon name={tab.icon} size={14} />
+                {tab.label}
+              </Link>
+            ))}
+          </nav>
+        )}
       </header>
 
-      {bisne.suspended && (
+      {bisne?.suspended && (
         <div className="panel-notice warning">
           <Icon name="warning" size={14} />
           Tu tienda está suspendida temporalmente. Contacta al equipo de elBisne.

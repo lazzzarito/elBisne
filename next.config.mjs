@@ -13,6 +13,15 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/b/:handle",
+        destination: "/:handle",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

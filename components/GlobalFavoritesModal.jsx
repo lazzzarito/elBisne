@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { lockBodyScroll } from "@/lib/scroll-lock";
@@ -12,8 +11,6 @@ import MasonryGrid from "@/components/MasonryGrid";
 import ProductCard from "@/components/ProductCard";
 import ProductModal from "@/components/ProductModal";
 import Icon from "@/components/Icon";
-
-const QuickBuyModal = dynamic(() => import("@/components/QuickBuyModal"), { ssr: false, loading: () => null });
 
 // Shape mínimo que espera ProductCard (mismas reglas que lib/products.js mapRow)
 function mapProductRow(row) {
@@ -25,7 +22,10 @@ function mapProductRow(row) {
     bisneId: row.bisne_id || null,
     name: row.name || "Producto",
     priceUSD: Number(row.price) || 0,
-    category: row.categories?.name || "General",
+    category: (row.product_categories?.[0]?.categories?.name) || row.categories?.name || "General",
+    categories: Array.isArray(row.product_categories)
+      ? row.product_categories.map((pc) => pc?.categories?.name).filter(Boolean)
+      : row.categories?.name ? [row.categories.name] : [],
     image: images[0] || "/images/placeholder.svg",
     images,
     description: row.description || "",
@@ -50,7 +50,6 @@ export default function GlobalFavoritesModal({ storeConfig, onClose }) {
   const [products, setProducts] = useState(undefined); // undefined = cargando
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickBuyProduct, setQuickBuyProduct] = useState(null);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured() || favoriteIds.length === 0) {
@@ -68,7 +67,7 @@ export default function GlobalFavoritesModal({ storeConfig, onClose }) {
       const slugs = favoriteIds.filter((id) => !uuidRe.test(id));
       let query = supabase
         .from("products")
-        .select("*, categories(name), bisnes(handle)")
+        .select("*, categories!products_category_id_fkey(name), product_categories(categories(id, name, slug, group_name)), bisnes(handle)")
         .limit(200);
       const conds = [];
       if (uuids.length > 0) conds.push(`id.in.(${uuids.join(",")})`);
@@ -152,22 +151,10 @@ export default function GlobalFavoritesModal({ storeConfig, onClose }) {
         onClose={() => setSelectedProduct(null)}
         onAddToCart={addToCart}
         storeConfig={storeConfig}
-        onQuickBuy={setQuickBuyProduct}
+        onOrderComplete={handleOrderComplete}
         isFavorited={selectedProduct ? favoriteIds.includes(selectedProduct.id) : false}
         onToggleFavorite={toggleFavorite}
       />
-
-      {quickBuyProduct && (
-        <QuickBuyModal
-          product={quickBuyProduct}
-          onClose={() => setQuickBuyProduct(null)}
-          onOrderComplete={() => {
-            handleOrderComplete();
-            setSelectedProduct(null);
-          }}
-          storeConfig={storeConfig}
-        />
-      )}
       <div className="store-info-overlay" onClick={onClose}>
       <div className="store-info-modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Cerrar">

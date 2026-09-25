@@ -11,7 +11,7 @@ export default function OffersSection({ offers, onAddToCart, onOpenDetails, favo
   return (
     <section className="featured-section" aria-label="Ofertas">
       <h2 className="featured-title">
-        Ofertas Flash
+        Productos en Oferta
         <span className="featured-title-line" />
         <button type="button" className="btn-offers-expand" onClick={() => onSeeAll?.()}>
           <Icon name="plus" />

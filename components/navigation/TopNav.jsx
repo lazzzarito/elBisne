@@ -14,7 +14,7 @@ import GlobalFavoritesModal from "@/components/GlobalFavoritesModal";
 // Menú superior minimalista: logo + acciones (buscador, favoritos, perfil).
 // Sin navegación por pestañas: el botón flotante del carrito y los drawers
 // globales cubren el resto (UI_UX.md §1).
-const HIDE_PREFIXES = ["/auth", "/tienda", "/b/", "/product/", "/pedido/", "/panel", "/admin", "/mensajes"];
+const HIDE_PREFIXES = ["/auth", "/tienda", "/product/", "/pedido/", "/panel", "/admin"];
 
 function initialsOf(name) {
   return (name || "?")
@@ -27,8 +27,9 @@ function initialsOf(name) {
 
 export default function TopNav({ storeConfig }) {
   const pathname = usePathname();
-  const { isLoggedIn, user } = useApp();
+  const { isLoggedIn, user, storeChrome } = useApp();
   const [showFavorites, setShowFavorites] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const userId = user?.id || null;
   // Logo/foto del bisne del usuario autenticado. `uid` acompaña al dato para
   // no mostrar el logo del usuario anterior mientras carga el nuevo.
@@ -51,14 +52,24 @@ export default function TopNav({ storeConfig }) {
     return () => { active = false; };
   }, [userId]);
 
+  // Estado "scrolled": refuerza el sombreado/desenfoque del header al bajar.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   if (HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
+  // Perfil de bisne: el chrome lo aporta la cabecera de la tienda.
+  if (storeChrome?.active) return null;
 
   const name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Usuario";
   const myBisneLogo = myBisne.uid === userId ? myBisne.logo : null;
   const myBisneName = myBisne.uid === userId ? myBisne.name : null;
 
   return (
-    <header className="top-nav" role="banner">
+    <header className={`top-nav${scrolled ? " is-scrolled" : ""}`} role="banner">
       <div className="top-nav-inner">
         <Link href="/" className="top-nav-brand" aria-label="elBisne — Inicio">
           <span className="top-nav-brand-logo">

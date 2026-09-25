@@ -27,6 +27,9 @@ export function AppProvider({ children }) {
   );
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
+  // Modo tienda activo (perfil de bisne): el layout global oculta su chrome
+  // (TopNav y FAB del carrito) y delega en la cabecera/footer de la tienda.
+  const [storeChrome, setStoreChrome] = useState({ active: false, bisneId: null, isOwner: false });
 
   useEffect(() => {
     if (!isClient) return;
@@ -412,6 +415,8 @@ export function AppProvider({ children }) {
     isLoggedIn: Boolean(user),
     authLoading,
     signOut,
+    storeChrome,
+    setStoreChrome,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

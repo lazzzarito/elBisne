@@ -204,7 +204,7 @@ export default function AuthSteps({ onDone }) {
           <label className="cinfo-field">
             <span className="cinfo-label">Enlace de tu tienda *</span>
             <div className="store-wizard-handle-input">
-              <span className="store-wizard-handle-prefix">elbisne.app/b/</span>
+              <span className="store-wizard-handle-prefix">elbisne.app/</span>
               <input
                 className="cinfo-input"
                 type="text"

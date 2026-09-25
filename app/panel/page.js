@@ -82,9 +82,9 @@ export default function PanelPage() {
   return (
     <PanelLayout
       title="Mi Panel"
-      subtitle={`${bisne.business_name} · /b/${bisne.handle}`}
+      subtitle={`${bisne.business_name} · ${bisne.handle ? `/${bisne.handle}` : "Sin handle"}`}
       actions={
-        <Link href={`/b/${bisne.handle}`} className="panel-view-store">
+        <Link href={`/${bisne.handle}`} className="panel-view-store">
           Ver tienda <Icon name="arrow-up" size={12} style={{ transform: "rotate(45deg)" }} />
         </Link>
       }
