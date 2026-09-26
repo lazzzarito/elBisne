@@ -6,7 +6,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { translateAuthError } from "@/lib/auth-errors";
 import Icon from "@/components/Icon";
 
-// ── Registro en pasos (UI_UX.md §2 · dos rutas: comprador y bisne) ───────
+// Registro en pasos dos rutas: comprador y bisne)
 // Vive en /perfil (sin sesión) y en el popup global de perfil. `onDone`
 // avisa al contenedor cuando la cuenta quedó creada/iniciada.
 const slugifyHandle = (v) =>

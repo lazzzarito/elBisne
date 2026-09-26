@@ -12,10 +12,9 @@ import Icon from "@/components/Icon";
 
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
 
-// ── Popup de búsqueda (mismo drawer que el carrito) ──────────────────────
-// El icono de buscador del TopNav abre este bottom-sheet con la sección de
-// búsqueda que antes vivía en /explorar. Se monta una vez en el layout y
-// escucha el evento "open-search" (mismo patrón que el carrito).
+// Popup de búsqueda (mismo drawer que el carrito)
+// El icono de buscador del TopNav abre este bottom-sheet. Se monta una vez en
+// el layout y escucha el evento "open-search" (mismo patrón que el carrito).
 export default function SearchModal({ storeConfig }) {
   const { addToCart, withStock, favoriteIds, toggleFavorite, handleOrderComplete, salesMap } = useApp();
   const [isOpen, setIsOpen] = useState(false);

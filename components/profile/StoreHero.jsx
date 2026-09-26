@@ -4,7 +4,7 @@ import Image from "next/image";
 import Icon from "@/components/Icon";
 import BannerCarousel from "@/components/ui/BannerCarousel";
 
-// ── Hero de la tienda (layout Whatalog) ─────────────────────────────────
+// Hero de la tienda (layout Whatalog)
 // Slider de banners full-width (máx. 5) + hasta 2 colecciones fijadas a la
 // derecha (cuadradas 1:1, como en la home). Cada elemento abre un producto
 // o una colección. El banner iguala el alto de la columna de cuadradas.

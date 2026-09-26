@@ -21,10 +21,10 @@ const defaultCustomer = (storeConfig) => {
   return { name: "", phone: "", delivery: d, address: "", payment: "", paymentOther: "" };
 };
 
-// ── Vista de compra directa dentro del ProductModal ──────────────────────
-// Ya no es un modal aparte: el propio modal de producto se transforma en este
-// panel. Recibe las opciones y la cantidad controladas por ProductModal para
-// que el estado sea compartido entre ambas vistas.
+// Vista de compra directa dentro del ProductModal
+// El modal de producto se transforma en este panel para la compra directa.
+// Recibe las opciones y la cantidad controladas por ProductModal para que el
+// estado sea compartido entre ambas vistas.
 export default function QuickBuyPanel({
   product,
   storeConfig,

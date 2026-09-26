@@ -108,7 +108,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalUSD = cartItems.reduce((acc, item) => acc + item.priceUSD * item.quantity, 0);
 
-  // ── Checkout secuencial: se confirma un Bisne a la vez ──────────────────
+  // Checkout secuencial: se confirma un Bisne a la vez
   // activeBisneId deriva de selectedBisneId con fallback automático al primer
   // grupo (sin efecto: si el usuario elige otro, el estado lo cambia igual).
   const activeBisneId = selectedBisneId !== null && groups.some((g) => g.bisneId === selectedBisneId)
@@ -196,14 +196,9 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
     setOpenProduct({ ...product, id: product.productId || product.id });
   };
 
-  // Apertura externa: el botón flotante y el corazón de la barra de navegación
-  // abren el mismo cajón, cada uno en su pestaña. Por eso ya no hace falta
-  // que el header ni el catálogo monten un modal de favoritos propio.
-  //
-  // Cada punto de entrada fija la pestaña, y el FAB usa openCart() en lugar de
-  // un setIsOpen(true) suelto: si no, reabrir el cajón después de haber pasado
-  // por favoritos lo devolvía a esa pestaña, y el botón del carrito tenía que
-  // llevar siempre al carrito.
+    // Cada punto de entrada fija la pestaña, y el FAB usa openCart() en lugar de
+    // un setIsOpen(true) suelto: si no, reabrir el cajón después de haber pasado
+    // por favoritos lo devolvería a esa pestaña.
   const openCart = useCallback(() => { setActiveTab("cart"); setIsOpen(true); }, []);
 
   // "open-cart" lo emite el menú de gestión del dueño: en su propia tienda el
@@ -473,11 +468,8 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
               </div>
             </>
           ) : (
-          /* El fundido solo se aplica al cambiar de paso. Este div vive únicamente
-             en la rama del carrito, así que al ir a Favoritos y volver se
-             remonta y la animación se repetía sola, con un parpadeo al cambiar
-             de pestaña. Como las pills solo existen en el paso 1, ahí el
-             fundido no aporta nada. */
+          /* El fundido solo se aplica al cambiar de paso, y las pills solo
+             existen en el paso 1 */
           <div className={`cart-step-animated${step === 1 ? "" : " is-animated"}`} key={step}>
           {step === 1 ? (
             <>
@@ -549,7 +541,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
             </>
           ) : (
             <>
-              {/* ── Selector multi-tienda (solo si hay varios Bisnes) ── */}
+              {/* Selector multi-tienda (solo si hay varios Bisnes) */}
               {groups.length > 1 && (
                 <div className="cart-multistore-picker">
                   <p className="cart-multistore-label">

@@ -12,7 +12,7 @@ const MAX_BANNERS = 5;
 const MAX_PINNED = 2;
 const uid = () => globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2, 10);
 
-// ── Editor de banners (hasta 5) + colecciones fijadas (hasta 2) ────────
+// Editor de banners (hasta 5) + colecciones fijadas (hasta 2)
 export default function BannersEditor({ bisneId, banners = [], collections = [], products = [], onSaved, onClose }) {
   const { showToast } = useApp();
   const [items, setItems] = useState(() =>

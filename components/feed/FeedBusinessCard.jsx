@@ -6,7 +6,7 @@ import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
 import FollowButton from "@/components/profile/FollowButton";
 
-// ── Tarjeta de bisne para el feed infinito (formato 1:1) ────────────────
+// Tarjeta de bisne para el feed infinito (formato 1:1)
 // A diferencia de `BusinessCard` (carruseles horizontales, 200px), esta vive
 // dentro del masonry junto a productos. Por eso el bloque visual es 1:1 —igual
 // que una `ratio-square` de producto— para no romper el ritmo de la grilla, y

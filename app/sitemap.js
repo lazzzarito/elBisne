@@ -14,7 +14,7 @@ export default async function sitemap() {
     priority: 0.8,
   }));
 
-  // Tiendas públicas de cada Bisne (Fase 10 · SEO extendido)
+  // Tiendas públicas de cada Bisne
   const handles = await getAllBisneHandles();
   const bisneUrls = handles.map((handle) => ({
     url: `${baseUrl}/${handle}`,

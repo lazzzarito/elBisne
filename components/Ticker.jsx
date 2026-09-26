@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
-// ── Texto con marquee ─────────────────────────────────────────────────────
+// Texto con marquee
 // Detecta si el contenido desborda su contenedor y, si es así, aplica un
 // desplazamiento horizontal infinito (tipo reproductor de música). Si cabe,
 // se muestra quieto y con tooltip. La velocidad escala con el largo.

@@ -49,7 +49,7 @@ function BisneCard({ bisne, followable = false }) {
   return <BusinessCard bisne={bisne} followable={followable} showRating={false} />;
 }
 
-// Buscador global del marketplace (UI_UX.md §5.1/§5.2):
+// Buscador global del marketplace /§5.2):
 //  · dropdown renderizado con createPortal (sin solapes, z-index controlado)
 //  · alturas fijas por tipo de resultado
 //  · búsqueda tolerante (lib/search): sin tildes, plurales y tipeos
@@ -70,7 +70,7 @@ export default function GlobalSearch({
   const [focused, setFocused] = useState(false);
   const [portalEl, setPortalEl] = useState(null);
   const [boxRect, setBoxRect] = useState(null);
-  // ── Búsquedas frecuentes (lazy init desde localStorage) ──
+  // Búsquedas frecuentes (lazy init desde localStorage)
   const [recent, setRecent] = useState(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -131,7 +131,7 @@ export default function GlobalSearch({
     });
   };
 
-  // ── Click fuera cierra el dropdown ──
+  // Click fuera cierra el dropdown
   useEffect(() => {
     const onDocClick = (e) => {
       if (rootRef.current && !rootRef.current.contains(e.target)) setFocused(false);
@@ -140,7 +140,7 @@ export default function GlobalSearch({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // ── Sugerencias en tiempo real con el motor tolerante (lib/search) ──
+  // Sugerencias en tiempo real con el motor tolerante (lib/search)
   const suggestions = useMemo(() => {
     if (!value.trim()) return { products: [], bisnes: [] };
 
@@ -330,7 +330,7 @@ export default function GlobalSearch({
     portalEl
   ) : null;
 
-  // ── Resultados en vivo (sección bajo el buscador, UI_UX.md §5.2) ──
+  // Resultados en vivo (sección bajo el buscador,
   const liveProducts = value.trim().length >= 2 ? suggestions.products.slice(0, 8) : [];
   const liveBisnes = value.trim().length >= 2 ? suggestions.bisnes.slice(0, 4) : [];
 

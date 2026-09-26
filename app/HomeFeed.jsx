@@ -37,7 +37,7 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
   const selectedBisneInfo = useBisneInfo(selectedProduct?.bisneId);
   const [bisneMap, setBisneMap] = useState(null);
 
-  // ── Vista de búsqueda global (sustituye al modal en la home) ────────────
+  // Vista de búsqueda global: sustituye al modal en la home
   // El TopNav dispara estos eventos desde app/layout.jsx; aquí se decide si la
   // página se queda mostrando el feed o se transforma en el buscador.
   const [searchView, setSearchView] = useState(false);
@@ -95,14 +95,14 @@ export default function HomeFeed({ initialProducts, storeConfig, bisnes, sitePro
     return () => { active = false; };
   }, []);
 
-  // ── Ofertas: prioriza bisnes seguidos (cold start v1) + resto por rebaja ──
+  // Ofertas: prioriza bisnes seguidos (cold start v1) + resto por rebaja
   const offers = useMemo(
     () => initialProducts.filter((p) => p.offer && p.originalPrice && p.originalPrice > p.priceUSD),
     [initialProducts]
   );
 
-  // ── Productos en tendencia (cold start v1, UI_UX.md §7): mismo ranking
-  // que usa el feed infinito, pero capado a una vista previa corta. ──
+  // Productos en tendencia (cold start v1,: mismo ranking
+  // que usa el feed infinito, pero capado a una vista previa corta.
   const recommended = useMemo(
     () => rankByTrend(initialProducts, salesMap).slice(0, MAX_TRENDING),
     [initialProducts, salesMap]

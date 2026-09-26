@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// ── Carrusel de banners reutilizable ────────────────────────────────────
+// Carrusel de banners reutilizable
 // scroll-snap horizontal con autoplay, arrastre con ratón (desktop) y
 // toque nativo (mobile). Detecta clic accidental tras arrastrar y lo
 // suprime. Los puntos se superponen sobre las diapositivas (según CSS).

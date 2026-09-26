@@ -8,7 +8,7 @@ import { useApp } from "@/context/AppContext";
 import { useHistoryPopup } from "@/lib/use-history-popup";
 import Icon from "@/components/Icon";
 
-// ── Editor inline de la identidad de la tienda (cabecera) ──────────────
+// Editor inline de la identidad de la tienda (cabecera)
 export default function StoreEditor({ bisneId, store, onSaved, onClose }) {
   const { showToast } = useApp();
   const [form, setForm] = useState(() => ({

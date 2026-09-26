@@ -5,7 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Icon from "@/components/Icon";
 
-// ── FollowButton (el corazón ES el seguir) ──────────────────────────────
+// FollowButton (el corazón ES el seguir)
 export default function FollowButton({ bisneId, handle, size = "md", withLabel = true }) {
   const { user, showToast } = useApp();
   const [following, setFollowing] = useState(false);

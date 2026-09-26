@@ -10,7 +10,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { getChannelUrl } from "@/lib/messaging";
 import { getBisneByHandle } from "@/lib/store";
 
-// ── Página pública de tienda (layout Whatalog + edición en vivo del dueño) ──
+// Página pública de tienda (layout Whatalog + edición en vivo del dueño)
 // La cabecera/catálogo/footer viven en CatalogContainer en modo tienda; aquí
 // se resuelve si el visitante es el dueño, se activa el "store chrome"
 // (oculta TopNav/globales) y se inyectan reseñas antes del footer.

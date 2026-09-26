@@ -4,11 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import BusinessCard from "@/components/feed/BusinessCard";
 import { parseEmbedCoords, haversineKm } from "@/lib/geo";
 
-// "Bisnes cerca de ti" (UI_UX.md §4.6): carrusel de bisnes ordenado por
+// "Bisnes cerca de ti" : carrusel de bisnes ordenado por
 // proximidad real al usuario cuando este da permiso de geolocalización.
 //  · con permiso: se parsean las coords del embed de Google de cada bisne
 //    y se ordena por distancia (haversine); sin coords → al final.
-//  · sin permiso / sin soporte: orden por rating (igual que antes del mapa).
+//  · sin permiso / sin soporte: orden por rating.
 export default function BusinessesNearLocation({ bisnes }) {
   const [userPos, setUserPos] = useState(null); // { lat, lng } | null
   const [geoResolved, setGeoResolved] = useState(false);

@@ -5,7 +5,7 @@ import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
 import FollowButton from "@/components/profile/FollowButton";
 
-// ── Card global de bisne estilo "sugerencia de seguir" de Instagram ─────
+// Card global de bisne estilo "sugerencia de seguir" de Instagram
 // Contenido centrado: logo arriba, nombre, slogan/categoría y rating.
 // SIN contador de productos. Es el diseño estándar para cualquier lugar
 // donde se muestren tarjetas de bisnes (home, popup de búsqueda, etc.).

@@ -5,9 +5,8 @@ import { useRef, useState, useEffect } from "react";
 import StoreInfoCard from "@/components/StoreInfoCard";
 import Icon from "@/components/Icon";
 
-// Footer global del sitio (UI_UX.md §4.8): idéntico al de la plantilla de los
-// bisnes (legal, contacto, redes) — es información global, vive solo en
-// Home/Explorar. La plantilla de tienda no lo duplica.
+// Footer global del sitio (legal, contacto, redes). Es información global, así
+// que solo se monta en la home; la plantilla de tienda no lo duplica.
 export default function SiteFooter({ storeConfig }) {
   const footerRef = useRef(null);
 

@@ -8,10 +8,10 @@ import { useFocusTrap } from "@/lib/use-focus-trap";
 import AuthSteps from "@/components/auth/AuthSteps";
 import Icon from "@/components/Icon";
 
-// ── Popup de perfil sin sesión (mismo drawer que el carrito) ─────────────
+// Popup de perfil sin sesión (mismo drawer que el carrito)
 // El icono de perfil del TopNav abre este bottom-sheet con el registro en
-// pasos (el mismo contenido que tenía /perfil sin sesión). Si ya hay sesión,
-// el icono navega directo a /perfil y este popup ni se abre.
+// pasos. Si ya hay sesión, el icono navega directo a /perfil y este popup no se
+// abre.
 export default function ProfileAuthModal() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);

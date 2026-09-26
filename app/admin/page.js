@@ -73,7 +73,7 @@ export default function AdminPage() {
     }
   }, [showToast]);
 
-  // ── Promos globales del sitio (UI_UX.md §4.1) ──
+  // Promos globales del sitio
   const loadPromos = useCallback(async () => {
     if (!isAdmin || !isSupabaseConfigured()) return;
     const supabase = createClient();

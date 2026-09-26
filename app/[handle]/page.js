@@ -26,7 +26,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// Página pública de tienda en la raíz (UI_UX.md §4.6):/{handle}
+// Página pública de tienda en la raíz :/{handle}
 // El antiguo prefijo /b/{handle} redirige aquí (301).
 export default async function StorePage({ params }) {
   const { handle } = await params;
@@ -38,7 +38,7 @@ export default async function StorePage({ params }) {
 
   if (!bisne) notFound();
 
-  // Banner fijable por el dueño (oferta | mapa | imagen) — UI_UX.md §2
+  // Banner fijable por el dueño (oferta | mapa | imagen) —
   const pinnedBanner = bisne.pinnedBanner || null;
 
   const products = allProducts.filter((p) => p.bisneId === bisne.id);
@@ -47,7 +47,7 @@ export default async function StorePage({ params }) {
     .filter((b) => b && b.image_url)
     .slice(0, 5);
 
-  // ── storeConfig por tienda: base del marketplace + datos del bisne ──
+  // storeConfig por tienda: base del marketplace + datos del bisne
   const promoPairs = (baseStoreConfig.promoLinks || []).map((link, i) => ({
     link,
     banner: (baseStoreConfig.promoBanners || [])[i] || null,

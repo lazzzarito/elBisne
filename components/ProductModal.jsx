@@ -12,14 +12,14 @@ import Ticker from "@/components/Ticker";
 import QuickBuyPanel from "@/components/QuickBuyPanel";
 
 export default function ProductModal({ product, onClose, onAddToCart, storeConfig, onOrderComplete, productQty: productQtyProp = 1, onQtyChange, isFavorited = false, onToggleFavorite, bisneInfo, onEditProduct }) {
-  // ── Track active image index for gallery ──
+  // Track active image index for gallery
   const [activeImage, setActiveImage] = useState(0);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showPlusBadge, setShowPlusBadge] = useState(false);
   const [lastAddedQty, setLastAddedQty] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [internalQty, setInternalQty] = useState(1);
-  // ── "product" = ficha · "checkout" = compra directa dentro del mismo modal ──
+  // "product" = ficha · "checkout" = compra directa dentro del mismo modal
   const [view, setView] = useState("product");
 
   // Cantidad controlada (padre) o local si no se pasa onQtyChange

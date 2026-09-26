@@ -4,11 +4,11 @@ import { useMemo } from "react";
 import GlobalSearch from "@/components/search/GlobalSearch";
 import Icon from "@/components/Icon";
 
-// ── Vista de búsqueda global dentro de la home ─────────────────────────────
-// Reemplaza al drawer SearchModal en la portada: en vez de tapar la página con
-// un modal, la propia home se transforma en el buscador. Mismo contenido que
-// tenía el modal (GlobalSearch en modo compact:Tenencias, En Oferta, Bisnes
-// nuevos, búsquedas frecuentes y resultados en vivo).
+// Vista de búsqueda global dentro de la home
+// Sustituye al drawer SearchModal en la portada: en vez de tapar la página con
+// un modal, la propia home se transforma en el buscador. Reutiliza GlobalSearch
+// en modo compact (Tenencias, En Oferta, Bisnes nuevos, búsquedas frecuentes y
+// resultados en vivo).
 //
 // A diferencia del modal, aquí no hace falta fetchCatalog(): initialProducts y
 // bisnes ya vienen por props desde el RSC de la home, así que la búsqueda en

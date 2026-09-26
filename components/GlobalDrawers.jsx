@@ -7,7 +7,7 @@ const Cart = dynamic(() => import("@/components/Cart"), { ssr: false, loading: (
 const SearchModal = dynamic(() => import("@/components/search/SearchModal"), { ssr: false, loading: () => null });
 const ProfileAuthModal = dynamic(() => import("@/components/auth/ProfileAuthModal"), { ssr: false, loading: () => null });
 
-// ── Popups globales del layout ───────────────────────────────────────────
+// Popups globales del layout
 //  · Carrito + Favoritos: botón flotante (FAB) y, en la página del propio
 //    bisne, el item "Mi carrito" del menú de gestión → evento "open-cart".
 //    Comparten un único cajón con pestañas, y ese cajón es también quien

@@ -27,12 +27,12 @@ export default function FilterHeader({
   onEditSection = null,
   storeContactHref = null,
 }) {
-  // ── Refs & UI state ──
+  // Refs & UI state
   const navRef = useRef(null);
   const [showStoreInfo, setShowStoreInfo] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // ── Auto-scroll active category tab into view ──
+  // Auto-scroll active category tab into view
   useEffect(() => {
     if (!navRef.current) return;
     const activeTab = navRef.current.querySelector(".category-btn.active");
@@ -47,7 +47,7 @@ export default function FilterHeader({
     }
   }, [activeCategory]);
 
-  // ── Lock scroll & handle Escape key for modals ──
+  // Lock scroll & handle Escape key for modals
   useEffect(() => {
     if (showStoreInfo) {
       const unlock = lockBodyScroll();
@@ -75,7 +75,7 @@ export default function FilterHeader({
   useHistoryPopup(showStoreInfo, () => setShowStoreInfo(false));
   useHistoryPopup(showSortMenu, () => setShowSortMenu(false));
 
-  // ── Listen for "open-sort-menu" custom event from catalog ──
+  // Listen for "open-sort-menu" custom event from catalog
   useEffect(() => {
     const handler = () => setShowSortMenu(true);
     window.addEventListener("open-sort-menu", handler);
@@ -89,10 +89,8 @@ export default function FilterHeader({
 
   return (
     <>
-      {/* Rediseño social v2.0: el buscador y favoritos viven en Explorar y en el
-          corazón global del TopNav. Este header se reduce a los filtros del
-          catálogo de una tienda (carrusel de categorías + botón filtros),
-          sin duplicar marca ni acciones globales (fin del doble header). */}
+      {/* El buscador y los favoritos viven en Explorar y en el corazón global
+         del TopNav. Aquí solo quedan los filtros del catálogo de una tienda. */}
       {storeMode && store ? (
         <StoreHeader
           store={store}
@@ -141,7 +139,7 @@ export default function FilterHeader({
       </header>
       )}
 
-      {/* ── Sort / filter bottom sheet ── */}
+      {/* Bottom sheet de orden y filtros */}
       {showSortMenu && (
         <div className="sort-modal-overlay" onClick={() => setShowSortMenu(false)}>
           <div className="sort-modal-sheet" onClick={(e) => e.stopPropagation()}>
@@ -250,7 +248,7 @@ export default function FilterHeader({
         </div>
       )}
 
-      {/* ── Store info modal ── */}
+      {/* Modal de información de la tienda */}
       {showStoreInfo && (
         <div className="store-info-overlay" onClick={() => setShowStoreInfo(false)}>
           <div className="store-info-modal" onClick={(e) => e.stopPropagation()} style={{ maxHeight: "80dvh" }}>

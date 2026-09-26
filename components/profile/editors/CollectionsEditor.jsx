@@ -10,7 +10,7 @@ import Icon from "@/components/Icon";
 
 const emptyForm = { title: "", bio: "", price: "", image_url: "", pinned: false, productIds: [] };
 
-// ── Editor de colecciones/combos: listado + formulario + picker de productos ──
+// Editor de colecciones/combos: listado + formulario + picker de productos
 export default function CollectionsEditor({ bisneId, collections = [], products = [], onSaved, onClose }) {
   const { showToast } = useApp();
   const [form, setForm] = useState(null); // null = listado; object = formulario

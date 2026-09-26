@@ -25,11 +25,11 @@ const emptyForm = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Categoría del producto. Una sola por producto: `products.category_id` es la
-// fuente de verdad, y `product_categories` queda como espejo de una fila para
-// no romper nada que todavía la lea. Antes se aceptaban hasta 3 y el form
-// guardaba en ambas tablas, lo que hacía que un mismo producto apareciera
-// listado en categorías distintas según qué consulta lo trajera.
+  // Categoría del producto. Una sola por producto: `products.category_id` es la
+  // fuente de verdad, y `product_categories` queda como espejo de una fila por
+  // compatibilidad con las consultas que aún la leen. Aceptar varias categorías
+  // hacía que un mismo producto apareciera listado en grupos distintos según qué
+  // consulta lo trajera.
 function resolveCategoryId(product, categories) {
   if (!product) return null;
   if (product.category_id) return product.category_id;
@@ -120,11 +120,8 @@ export default function ProductForm({ bisneId, product, categories = [], collect
     }
   };
 
-  // Antes se escribía la categoría también en product_categories (tabla m2m,
-  // 1..3 filas por producto) y por eso un mismo producto salía listado en
-  // categorías distintas según qué consulta lo trajera. Esa tabla ya no
-  // existe (migración 018): products.category_id es lo único que se guarda.
-  // El formulario ya es de selección única (radio) y `submit` exige una.
+    // Solo se guarda products.category_id (migración 018). El formulario es de
+    // selección única (radio) y `submit` exige una.
 
   const categoriesByGroup = useMemo(() => groupCategories(categories), [categories]);
 

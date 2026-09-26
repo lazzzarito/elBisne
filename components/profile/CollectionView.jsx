@@ -8,7 +8,7 @@ import { useFocusTrap } from "@/lib/use-focus-trap";
 import Icon from "@/components/Icon";
 import EmptyState from "@/components/ui/EmptyState";
 
-// ── Vista de una colección/combo: detalle + slider de productos + añadir ──
+// Vista de una colección/combo: detalle + slider de productos + añadir
 export default function CollectionView({
   collection,
   onClose,

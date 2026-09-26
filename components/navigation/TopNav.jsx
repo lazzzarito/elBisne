@@ -14,7 +14,7 @@ import { HOME_SEARCH_OPEN, HOME_SEARCH_QUERY, HOME_SEARCH_CLOSE } from "@/lib/se
 
 // Menú superior minimalista: logo + buscador + perfil. Sin navegación por
 // pestañas: el botón flotante del carrito y los drawers globales cubren el
-// resto (UI_UX.md §1).
+// resto .
 const HIDE_PREFIXES = ["/auth", "/tienda", "/product/", "/pedido/", "/panel", "/admin"];
 
 function initialsOf(name) {

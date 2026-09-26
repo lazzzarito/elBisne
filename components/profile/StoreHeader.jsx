@@ -9,7 +9,7 @@ import Icon from "@/components/Icon";
 import SearchField, { storeSearchPlaceholder } from "@/components/SearchField";
 import NotificationsBadge from "@/components/notifications/NotificationsBadge";
 
-// ── Cabecera fusionada de la tienda (layout Whatalog + acciones elBisne) ──
+// Cabecera fusionada de la tienda (layout Whatalog + acciones elBisne)
 // Fila 1: [←] logo · nombre + ✔ + stats · ❤ 🔔 👤 Contactar · Seguir
 // Fila 2: buscador exclusivo del catálogo del perfil
 // Fila 3: pills de categorías

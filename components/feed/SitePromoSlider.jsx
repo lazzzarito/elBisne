@@ -4,13 +4,14 @@ import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
 import BannerCarousel from "@/components/ui/BannerCarousel";
 
-// Promos globales del sitio (UI_UX.md §4.1): imagen horizontal larga +
+// Promos globales del sitio : imagen horizontal larga +
 // dos cuadradas 1:1 al lado. La imagen larga es un carrusel con autoplay
 // y gestos (móvil y escritorio) que rota por todas las promos. Cada promo
 // es un enlace DIRECTO (sin popup): al perfil de un bisne de la red
 // (/handle) o a una URL externa. Se gestiona desde /admin.
 
-// Mismo criterio de salida que tenía el popup (nunca un callejón sin salida):
+// Toda promo necesita un destino, así que se resuelve con fallbacks en cascada
+// para que nunca quede un enlace sin destino:
 //  · bisne → perfil del bisne
 //  · url con enlace → enlace externo
 //  · url sin enlace pero con bisne_handle → perfil del bisne (fallback)

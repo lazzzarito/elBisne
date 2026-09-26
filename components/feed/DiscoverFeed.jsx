@@ -8,14 +8,13 @@ import FeedBusinessCard from "@/components/feed/FeedBusinessCard";
 import { buildMixedFeed, countMixedFeed, PRODUCTS_PER_BUSINESS } from "@/lib/feed-mix";
 import { plural } from "@/lib/text";
 
-// ── Feed tipo red social: productos + bisnes mezclados, sin repetir ──────
+// Feed tipo red social: productos + bisnes mezclados, sin repetir
 // El catálogo ya viene entero desde el RSC (app/page.js), así que aquí no hay
 // paginación de red: el feed se arma en memoria y se va pintando de a bloques.
 //
-// El catálogo NO se recicla (antes sí). Cada producto y cada bisne aparece
-// una sola vez, así que el feed tiene un final real: en vez de un loader
-// girando para siempre, cerramos con "ya viste todo" + un botón que reordena
-// con otra semilla.
+// El catálogo NO se recicla: cada producto y cada bisne aparece una sola vez,
+// así que el feed tiene un final real. En vez de un loader girando para siempre,
+// cerramos con "ya viste todo" + un botón que reordena con otra semilla.
 //
 // Clave de UX: la carga se dispara con un rootMargin generoso para que el
 // contenido esté en el DOM ~900px ANTES de que el sentinel entre en pantalla.

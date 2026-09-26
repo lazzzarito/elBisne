@@ -7,9 +7,9 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { lockBodyScroll } from "@/lib/scroll-lock";
 import Icon from "@/components/Icon";
 
-// Editor inline (Fase A): permite fijar banner (oferta/mapa/imagen) y ajustar
+// Editor inline : permite fijar banner (oferta/mapa/imagen) y ajustar
 // el acento del tema sin salir del perfil. El panel /panel sigue existiendo
-// para gestión seria; esto es lo "frecuente" hecho inline (UI_UX.md §6).
+// para gestión seria; esto es lo "frecuente" hecho inline .
 export default function ThemeEditorInline({ bisneId, initialPinned, initialAccent, onClose }) {
   const router = useRouter();
   const { showToast } = useApp();

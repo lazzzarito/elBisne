@@ -10,12 +10,10 @@ import { useApp } from "@/context/AppContext";
 
 const DISMISS_KEY = "elbisne_account_suggestion_dismissed";
 
-// Sugerencia opcional de cuenta (UI_UX.md §10):
-// Reemplaza al modal de la plantilla antigua de Whatalog que pedía datos
-// obligatorios al visitar una tienda compartida. Ahora: sugiere crear una
-// cuenta en elBisne SIN limitar ni obligar al visitante no registrado.
-// Se muestra una sola vez, se cierra con Escape/click fuera/"Ahora no"/atrás,
-// y el sitio es 100% navegable y comprable sin cuenta.
+// Sugerencia opcional de cuenta: pide crear una cuenta en elBisne sin limitar
+// ni obligar al visitante no registrado. Se muestra una sola vez, se cierra con
+// Escape/click fuera/"Ahora no"/atrás, y el sitio es 100% navegable y comprable
+// sin cuenta.
 export default function CustomerInfoModal({ storeConfig }) {
   const { isLoggedIn } = useApp();
   const [visible, setVisible] = useState(false);

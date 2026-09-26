@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════
 // elBisne · scripts/migrate-008.mjs
-// Rediseño social v2.0 (UI_UX.md): migración 008 + promos demo.
+// Rediseño social v2.0: migración 008 + promos demo.
 //
 // ¿Qué hace?
 //  1. Comprueba si las tablas de la migración 008 existen (site_promos,

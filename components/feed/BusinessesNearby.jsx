@@ -2,7 +2,7 @@
 
 import BusinessCard from "@/components/feed/BusinessCard";
 
-// "Bisnes para ti" (UI_UX.md §4.2): carrusel de bisnes recomendados.
+// "Bisnes para ti" : carrusel de bisnes recomendados.
 // Ranking por recomendación (rating + novedad), sin contador de productos.
 export default function BusinessesNearby({ bisnes, subtitle = "Las tiendas mejor valoradas de la comunidad" }) {
   if (!bisnes || !bisnes.length) return null;

@@ -43,7 +43,7 @@ function initialsOf(name) {
     .join("");
 }
 
-// ── Pestaña Tiendas seguidas (lista con logo + link, UI_UX.md §2) ────────
+// Pestaña Tiendas seguidas (lista con logo + link,
 function FollowedStoresTab() {
   const { user } = useApp();
   const [stores, setStores] = useState(undefined);
@@ -146,7 +146,7 @@ function FollowedStoresTab() {
   );
 }
 
-// ── Pestaña Mis pedidos (lista simple con tracking) ──────────────────────
+// Pestaña Mis pedidos (lista simple con tracking)
 function MyOrdersTab() {
   const { user } = useApp();
   const [orders, setOrders] = useState(undefined);
@@ -214,7 +214,7 @@ function MyOrdersTab() {
   );
 }
 
-// ── Perfil principal ─────────────────────────────────────────────────────
+// Perfil principal
 export default function PerfilClient({ products, storeConfig }) {
   const router = useRouter();
   const { isLoggedIn, user, authLoading, signOut, favoriteIds, toggleFavorite, addToCart, showToast, withStock, handleOrderComplete } = useApp();
@@ -276,7 +276,7 @@ export default function PerfilClient({ products, storeConfig }) {
     [showToast, router]
   );
 
-  // ── Estado cargando ──
+  // Estado cargando
   if (authLoading) {
     return (
       <main className="perfil-page" id="main-content">
@@ -291,7 +291,7 @@ export default function PerfilClient({ products, storeConfig }) {
     );
   }
 
-  // ── Sin sesión: registro en pasos DIRECTO (sin botón intermedio) ──
+  // Sin sesión: registro en pasos DIRECTO (sin botón intermedio)
   if (!isLoggedIn) {
     return (
       <main className="perfil-page" id="main-content">
@@ -302,7 +302,7 @@ export default function PerfilClient({ products, storeConfig }) {
     );
   }
 
-  // ── Estado autenticado: pestañas (Guardados / Tiendas / Pedidos) ──
+  // Estado autenticado: pestañas (Guardados / Tiendas / Pedidos)
   return (
     <main className="perfil-page" id="main-content">
       <header className="perfil-header">

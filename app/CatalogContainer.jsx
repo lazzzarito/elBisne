@@ -58,7 +58,7 @@ export default function CatalogContainer({
   const offersRef = useRef(null);
   const [productQtyMap, setProductQtyMap] = useState({});
 
-  // ── Modo tienda: catálogo mutable (dueño edita en vivo) ──
+  // Modo tienda: catálogo mutable (dueño edita en vivo)
   const [products, setProducts] = useState(initialProducts);
   const [collections, setCollections] = useState(initialCollections);
   const [selectedCollection, setSelectedCollection] = useState(null);
@@ -153,7 +153,7 @@ export default function CatalogContainer({
     return cleanup;
   }, [showToast]);
 
-  // ── Category, search & sort state ──
+  // Estado de categoría, búsqueda y orden
   const categories = useMemo(() => {
     const seen = new Set();
     productList.forEach((p) => (p.categories && p.categories.length ? p.categories : [p.category]).forEach((c) => c && seen.add(c)));
@@ -182,7 +182,7 @@ export default function CatalogContainer({
     }
   }, []);
 
-  // ── Only scroll to catalog when category actually changes ──
+  // Desplaza al catálogo solo cuando la categoría cambia de verdad
   const prevCategoryRef = useRef(activeCategory);
   useEffect(() => {
     if (activeCategory !== prevCategoryRef.current) {
@@ -197,7 +197,7 @@ export default function CatalogContainer({
     }
   }, [activeCategory]);
 
-  // ── Filter + sort logic ──
+  // Lógica de filtrado y orden
   const sortedProducts = useMemo(() => {
     // Búsqueda tolerante (lib/search): sin tildes, plurales, tipeos y
     // sinónimos/regionalismos ("mobiles"/"celular" ↔ "móvil").
@@ -239,7 +239,7 @@ export default function CatalogContainer({
     });
   }, [productList, activeCategory, searchQuery, sortBy]);
 
-  // ── Infinite scroll ──
+  // Scroll infinito
   const initialLoad = 24;
   const [visibleLimit, setVisibleLimit] = useState(initialLoad);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -254,7 +254,7 @@ export default function CatalogContainer({
 
   const loaderRef = useRef(null);
 
-  // ── IntersectionObserver for load-more trigger ──
+  // IntersectionObserver que dispara la carga de más productos
   useEffect(() => {
     if (!hasMore || !isClient) return;
 
@@ -290,7 +290,7 @@ export default function CatalogContainer({
     };
   }, [hasMore, loadingMore, sortedProducts.length, isClient]);
 
-  // ── Promo & offer sections ──
+  // Promo & offer sections
   const promoBanners = storeConfig.promoBanners || [];
 
   const offerProducts = useMemo(() => {
@@ -359,7 +359,7 @@ export default function CatalogContainer({
     return productList.filter((p) => p.promo === selectedPromo.target);
   }, [selectedPromo, productList]);
 
-  // ── Modo tienda: contacto, banners y colecciones para hero/sección ──
+  // Modo tienda: contacto, banners y colecciones para hero/sección
   const storeContactHref = useMemo(() => {
     if (!storeMode || !store) return null;
     return getChannelUrl(
@@ -448,7 +448,7 @@ export default function CatalogContainer({
         storeContactHref={storeContactHref}
       />
 
-      {/* ── Main content: promos, offers, product grid ── */}
+      {/* Contenido principal: promos, ofertas y rejilla de productos */}
       <main className="main-container" id="main-content">
         {storeMode ? (
           <StoreHero
@@ -720,7 +720,7 @@ export default function CatalogContainer({
       {beforeFooter && <SectionDivider />}
       {beforeFooter}
 
-      {/* ── Footer with map & social links ── */}
+      {/* Pie con mapa y enlaces sociales */}
       <footer className="app-footer-minimal" ref={footerRef}>
         {storeMode && store ? (
           <>

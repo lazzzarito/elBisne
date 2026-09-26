@@ -33,7 +33,7 @@ function CollectionPreview({ collection }) {
   );
 }
 
-// ── Colecciones / Combos (solo se muestra cuando hay >2 colecciones) ──
+// Colecciones / Combos (solo se muestra cuando hay >2 colecciones)
 export default function CollectionsSection({
   collections,
   onOpenCollection,

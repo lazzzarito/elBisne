@@ -46,7 +46,7 @@ export function AppProvider({ children }) {
     return () => window.clearTimeout(timer);
   }, [isClient]);
 
-  // ── Ventas desde la DB (Tendencias) — se refresca tras cada pedido ──
+  // Ventas desde la DB (Tendencias) — se refresca tras cada pedido
   const refreshSales = useCallback(async () => {
     if (!isSupabaseConfigured()) return;
     try {
@@ -79,7 +79,7 @@ export function AppProvider({ children }) {
     }, 3000);
   }, []);
 
-  // ── Sincronización de favoritos con Supabase ──
+  // Sincronización de favoritos con Supabase
   // Se ejecuta como callback de la suscripción de auth (patrón externo): al
   // iniciar sesión fusiona remotos con locales (merge bidireccional); al
   // cerrar sesión vuelve a los favoritos solo locales.
@@ -154,7 +154,7 @@ export function AppProvider({ children }) {
     };
   }, [isClient, syncFavoritesFromRemote, restoreLocalFavorites]);
 
-  // ── Stock solo-DB: los productos del carrito traen stock congelado;
+  // Stock solo-DB: los productos del carrito traen stock congelado;
   // withStock() lo refresca con el valor actual de la DB tras cada pedido.
   const stockMapRef = useRef(new Map());
   const [stockVersion, setStockVersion] = useState(0);
