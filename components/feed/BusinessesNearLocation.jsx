@@ -59,15 +59,17 @@ export default function BusinessesNearLocation({ bisnes }) {
   // Lo capamos por rendimiento: el carrusel se desplaza, no pinta todo.
   const shown = sorted.slice(0, 24);
 
+  // El subtítulo cuenta la historia real según lo que sepamos del usuario:
+  // mientras se decide la ubicación no prometemos proximidad, y si el usuario
+  // la niega decimos por qué estamos viendo otras tiendas.
+  let subtitle = "Ordenadas por lo cerca que están de ti";
+  if (!geoResolved) subtitle = "Calculando qué tiendas tienes más cerca";
+  else if (!userPos) subtitle = "No compartiste tu ubicación: mostramos las más valoradas";
+
   return (
     <section className="businesses-carousel-section" aria-label="Bisnes cerca de ti">
-      <h2 className="featured-title">
-        Bisnes cerca de ti
-        <span className="featured-title-line" />
-      </h2>
-      {geoResolved && !userPos && (
-        <p className="businesses-near-hint">No compartiste tu ubicación: mostramos los más valorados.</p>
-      )}
+      <h2 className="featured-title">Bisnes cerca de ti</h2>
+      <p className="section-subtitle">{subtitle}</p>
       <div className="businesses-carousel">
         {shown.map((bisne) => (
           <BusinessCard key={bisne.id} bisne={bisne} followable />

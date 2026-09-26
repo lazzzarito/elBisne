@@ -88,7 +88,7 @@ export default function StoreEditor({ bisneId, store, onSaved, onClose }) {
       <div className="store-editor" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Editar tienda">
         <div className="store-editor-header">
           <h2 className="store-editor-title">Datos de la tienda</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={18} /></button>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={20} /></button>
         </div>
 
         <div className="store-editor-scroll">

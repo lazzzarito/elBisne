@@ -35,6 +35,14 @@ export default function StoreOwnerMenu({ open, handle, onClose, isPersonal = fal
 
   useHistoryPopup(open, onClose);
 
+  // El cajón global vive en GlobalDrawers; se le avisa por el mismo bus de
+  // CustomEvent que usa el resto del chrome. El menú se cierra antes para no
+  // dejar dos capas superpuestas.
+  const openCartFromMenu = () => {
+    onClose?.();
+    window.dispatchEvent(new CustomEvent("open-cart"));
+  };
+
   if (!open) return null;
 
   return (
@@ -43,6 +51,14 @@ export default function StoreOwnerMenu({ open, handle, onClose, isPersonal = fal
         <div className="store-owner-menu-handle" aria-hidden="true" />
         <h2 className="store-owner-menu-title">{isPersonal ? "Gestión de mi perfil" : "Gestión de mi tienda"}</h2>
         <div className="store-owner-menu-list">
+          {/* En la página del propio bisne el FAB es el de publicar producto y
+              la cabecera no lleva carrito, así que el carrito del dueño se abre
+              desde aquí. */}
+          <button type="button" className="store-owner-menu-item" onClick={openCartFromMenu}>
+            <Icon name="cart" size={16} />
+            <span>Mi carrito</span>
+            <Icon name="chevron-right" size={14} />
+          </button>
           {(isPersonal ? PERSONAL_OPTIONS : OPTIONS).map((opt) => (
             <Link key={opt.href} href={opt.href} className="store-owner-menu-item" onClick={onClose}>
               <Icon name={opt.icon} size={16} />

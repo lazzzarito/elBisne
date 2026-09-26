@@ -112,7 +112,8 @@ export default function AuthSteps({ onDone }) {
   if (!route) {
     return (
       <div className="auth-steps">
-        <h2 className="auth-steps-title">Únete a elBisne</h2>
+        {/* El título vive en el header del drawer (ProfileAuthModal); aquí
+            repetía el mismo "Únete a elBisne" dos veces en la misma pantalla. */}
         <p className="auth-steps-sub">Elige cómo quieres empezar. Podrás cambiarlo después.</p>
         <button type="button" className="auth-route-card" onClick={() => { setRoute("user"); setMode("signup"); }}>
           <span className="auth-route-icon"><Icon name="user" size={20} /></span>

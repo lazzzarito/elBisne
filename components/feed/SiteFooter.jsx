@@ -11,6 +11,28 @@ import Icon from "@/components/Icon";
 export default function SiteFooter({ storeConfig }) {
   const footerRef = useRef(null);
 
+  // Igual que en el footer de los bisnes (CatalogContainer): el carrito vive
+  // en el layout y su FAB muta a "volver arriba" cuando el footer está a la
+  // vista. El ref ya estaba puesto, pero faltaba el observer, así que en la
+  // home el botón de subir nunca aparecía.
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        window.dispatchEvent(
+          new CustomEvent("cart-footer-visibility", { detail: { visible: entry.isIntersecting } })
+        );
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      window.dispatchEvent(new CustomEvent("cart-footer-visibility", { detail: { visible: false } }));
+    };
+  }, []);
+
   const socialLinks = [
     { key: "instagram", label: "Instagram", href: storeConfig.socialLinks?.instagram },
     { key: "facebook", label: "Facebook", href: storeConfig.socialLinks?.facebook },

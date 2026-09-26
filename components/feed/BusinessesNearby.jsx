@@ -4,7 +4,7 @@ import BusinessCard from "@/components/feed/BusinessCard";
 
 // "Bisnes para ti" (UI_UX.md §4.2): carrusel de bisnes recomendados.
 // Ranking por recomendación (rating + novedad), sin contador de productos.
-export default function BusinessesNearby({ bisnes }) {
+export default function BusinessesNearby({ bisnes, subtitle = "Las tiendas mejor valoradas de la comunidad" }) {
   if (!bisnes || !bisnes.length) return null;
 
   const sorted = [...bisnes].sort((a, b) => {
@@ -15,10 +15,8 @@ export default function BusinessesNearby({ bisnes }) {
 
   return (
     <section className="businesses-carousel-section" aria-label="Bisnes recomendados">
-      <h2 className="featured-title">
-        Bisnes para ti
-        <span className="featured-title-line" />
-      </h2>
+      <h2 className="featured-title">Bisnes para ti</h2>
+      {subtitle && <p className="section-subtitle">{subtitle}</p>}
       <div className="businesses-carousel">
         {sorted.map((bisne) => (
           <BusinessCard key={bisne.id} bisne={bisne} followable />

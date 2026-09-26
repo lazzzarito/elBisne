@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -8,12 +8,13 @@ import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
+import SearchField from "@/components/SearchField";
 import NotificationsBadge from "@/components/notifications/NotificationsBadge";
-import GlobalFavoritesModal from "@/components/GlobalFavoritesModal";
+import { HOME_SEARCH_OPEN, HOME_SEARCH_QUERY, HOME_SEARCH_CLOSE } from "@/lib/search-events";
 
-// Menú superior minimalista: logo + acciones (buscador, favoritos, perfil).
-// Sin navegación por pestañas: el botón flotante del carrito y los drawers
-// globales cubren el resto (UI_UX.md §1).
+// Menú superior minimalista: logo + buscador + perfil. Sin navegación por
+// pestañas: el botón flotante del carrito y los drawers globales cubren el
+// resto (UI_UX.md §1).
 const HIDE_PREFIXES = ["/auth", "/tienda", "/product/", "/pedido/", "/panel", "/admin"];
 
 function initialsOf(name) {
@@ -28,7 +29,6 @@ function initialsOf(name) {
 export default function TopNav({ storeConfig }) {
   const pathname = usePathname();
   const { isLoggedIn, user, storeChrome } = useApp();
-  const [showFavorites, setShowFavorites] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const userId = user?.id || null;
   // Logo/foto del bisne del usuario autenticado. `uid` acompaña al dato para
@@ -60,6 +60,63 @@ export default function TopNav({ storeConfig }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // El buscador global depende de la ruta:
+  //  · En la home la página se transforma en el buscador (sin modal).
+  //  · En el resto de rutas se mantiene el drawer SearchModal.
+  const isHome = pathname === "/";
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchRef = useRef(null);
+
+  // Espejo del campo de la home: el buscador grande de la página escribe aquí
+  // y su texto se reenvía con HOME_SEARCH_QUERY, así que este campo pequeño se
+  // actualiza sin duplicar estado.
+  useEffect(() => {
+    const onQuery = (e) => {
+      const q = e?.detail?.query;
+      if (typeof q === "string") setSearchQuery(q);
+    };
+    const onClose = () => setSearchQuery("");
+    window.addEventListener(HOME_SEARCH_QUERY, onQuery);
+    window.addEventListener(HOME_SEARCH_CLOSE, onClose);
+    return () => {
+      window.removeEventListener(HOME_SEARCH_QUERY, onQuery);
+      window.removeEventListener(HOME_SEARCH_CLOSE, onClose);
+    };
+  }, []);
+
+  const emit = (name, query) =>
+    window.dispatchEvent(new CustomEvent(name, { detail: { query } }));
+
+  // En la home basta con enfocar para que la página se convierta en buscador.
+  const handleFocus = () => {
+    if (isHome) emit(HOME_SEARCH_OPEN, searchQuery);
+  };
+
+  const handleChange = (q) => {
+    setSearchQuery(q);
+    if (isHome) emit(HOME_SEARCH_QUERY, q);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (isHome) {
+      if (e.key === "Enter") {
+        emit(HOME_SEARCH_OPEN, searchQuery);
+        searchRef.current?.blur();
+      } else if (e.key === "Escape") {
+        emit(HOME_SEARCH_CLOSE);
+        searchRef.current?.blur();
+      }
+      return;
+    }
+    // Fuera de la home: Enter abre el drawer con la consulta ya escrita.
+    if (e.key === "Enter") {
+      const q = searchQuery.trim();
+      if (!q) return;
+      emit("open-search", q);
+      searchRef.current?.blur();
+    }
+  };
+
   if (HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
   // Perfil de bisne: el chrome lo aporta la cabecera de la tienda.
   if (storeChrome?.active) return null;
@@ -85,27 +142,18 @@ export default function TopNav({ storeConfig }) {
         </Link>
 
         <div className="top-nav-actions">
-          {/* Buscador: abre el drawer global (mismo diseño que el carrito) */}
-          <button
-            type="button"
-            className="top-nav-fav-btn"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-search"))}
-            aria-label="Buscar"
-            title="Buscar"
-          >
-            <Icon name="search" size={18} />
-          </button>
-
-          {/* Corazón global = productos favoritos (UI_UX.md §1) */}
-          <button
-            type="button"
-            className="top-nav-fav-btn"
-            onClick={() => setShowFavorites(true)}
-            aria-label="Tus productos favoritos"
-            title="Favoritos"
-          >
-            <Icon name="heart-outline" size={18} />
-          </button>
+          {/* Buscador: en la home transforma la página y filtra en vivo; en el
+              resto de rutas, Enter abre el drawer global. */}
+          <SearchField
+            className="top-nav-search"
+            value={searchQuery}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Buscar productos y bisnes…"
+            ariaLabel="Buscar en elBisne"
+            inputRef={searchRef}
+          />
 
           <NotificationsBadge />
 
@@ -145,8 +193,6 @@ export default function TopNav({ storeConfig }) {
           )}
         </div>
       </div>
-
-      {showFavorites && <GlobalFavoritesModal storeConfig={storeConfig} onClose={() => setShowFavorites(false)} />}
     </header>
   );
 }

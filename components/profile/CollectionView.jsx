@@ -56,7 +56,7 @@ export default function CollectionView({
         <div className="collection-view-header">
           <span className="collection-view-label">Colección</span>
           <button className="modal-close" onClick={onClose} aria-label="Cerrar">
-            <Icon name="close" size={18} />
+            <Icon name="close" size={20} />
           </button>
         </div>
 

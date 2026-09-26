@@ -12,7 +12,8 @@ export default function RecommendationsFeed({
   onOpenDetails,
   favoriteIds,
   onToggleFavorite,
-  title = "Recomendaciones para ti",
+  title = "Productos en Tendencia",
+  subtitle = "Lo que más se está vendiendo ahora mismo",
   showBisne = false,
   bisneMap,
 }) {
@@ -51,10 +52,8 @@ export default function RecommendationsFeed({
 
   return (
     <section className="recommendations-section" aria-label={title}>
-      <h2 className="featured-title">
-        {title}
-        <span className="featured-title-line" />
-      </h2>
+      <h2 className="featured-title">{title}</h2>
+      {subtitle && <p className="section-subtitle">{subtitle}</p>}
       <MasonryGrid key="home-recommendations">
         {visibleProducts.map((product, i) => (
           <ProductCard

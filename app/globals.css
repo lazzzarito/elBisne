@@ -563,10 +563,48 @@ body {
   gap: 0.75rem;
 }
 
-.featured-title-line {
+/* Subtítulo de sección: una línea que explica qué hay ahí y por qué.
+   Se apoya en el margen negativo del título para quedar pegado a él. */
+.section-subtitle {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin: -0.85rem 0 0.9rem;
+}
+
+/* Separador entre secciones. Deliberadamente corto y centrado: NO ocupa el
+   ancho completo, para que las secciones respiren sin partir la página en
+   bandas horizontales. */
+.section-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--text-secondary);
+}
+
+.section-divider-line {
   flex: 1;
-  height: 1px;
-  background: var(--border-color);
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--border-color));
+}
+
+.section-divider-line:last-child {
+  background: linear-gradient(90deg, var(--border-color), transparent);
+}
+
+.section-divider-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  opacity: 0.5;
 }
 
 
@@ -1181,14 +1219,144 @@ body {
   position: relative;
 }
 
-.cart-header h2 {
-  font-family: var(--font-sans);
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
+    .cart-header h2 {
+      font-family: var(--font-sans);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
 
-.cart-items-container {
+    /* Sólo para lectores de pantalla: cuando las pills sustituyen al título,
+       el h2 sigue ahí pero sin ocupar sitio. */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ── Pestañas Carrito / Favoritos del cajón ── */
+    .cart-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      background: var(--bg-secondary);
+      min-width: 0;
+      /* El botón de cerrar es absoluto y por tanto no empuja a las pills: sin
+         este margen se colarían debajo en un cajón estrecho. */
+      margin-right: 2.5rem;
+    }
+
+    .cart-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.7rem;
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .cart-tab:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    .cart-tab.active {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .cart-tab:focus-visible {
+      outline: 2px solid var(--accent-green);
+      outline-offset: 1px;
+    }
+
+    .cart-tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.15rem;
+      height: 1.15rem;
+      padding: 0 0.25rem;
+      border-radius: 999px;
+      background: var(--border-color);
+      color: var(--text-primary);
+      font-size: 0.68rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .cart-tab.active .cart-tab-count {
+      background: var(--accent-green);
+      color: #fff;
+    }
+
+
+    /* ── Panel de Favoritos dentro del cajón ── */
+    /* Comparte las clases de fila del carrito a propósito: así las dos
+       pestañas se leen como la misma superficie. */
+    .favs-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .favs-skeleton {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* La imagen de la fila es un <button>, así que hay que quitarle los
+       estilos por defecto de botón además de ponerle cursor. */
+    .cart-item-open {
+      cursor: pointer;
+      padding: 0;
+      border: none;
+      background: none;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      flex-shrink: 0;
+    }
+
+    .cart-item-open:focus-visible {
+      outline: 2px solid var(--accent-green);
+      outline-offset: 1px;
+    }
+
+    .btn-fav-add {
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-radius: 999px;
+      padding: 0.3rem 0.75rem;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-fav-add:hover {
+      background: var(--border-color);
+    }
+
+    .cart-items-container {
   flex: 1;
   overflow-y: auto;
   scrollbar-width: none;
@@ -1785,10 +1953,17 @@ body {
   }
 }
 
+/* ── Botón de cerrar, compartido por todos los modales ─────────────────────
+   Un único diseño para todos: disco de 32px (la altura de una pestaña del
+   cajón, que era el que se veía descuadrado), fondo --bg-secondary y hover
+   --border-color. La posición sí es contextual, porque no todos los modales
+   tienen header:
+     · Con header    -> se centra en vertical, como el del carrito.
+     · Sin header    -> esquina superior derecha, que es lo único que hay. */
 .modal-close {
   position: absolute;
   top: 1rem;
-  right: 1rem;
+  right: 1.5rem;
   z-index: 5;
   background: var(--bg-secondary);
   border: none;
@@ -1797,11 +1972,24 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   transition: background 0.2s;
   flex-shrink: 0;
+}
+
+/* Modales cuyo botón vive dentro de un header: se centra en la fila en vez de
+   quedar clavado arriba. Cada selector necesita un contenedor position:
+   relative, y a .store-editor-header y .collection-view-header se lo añadimos
+   más abajo porque no lo tenían. */
+.cart-header .modal-close,
+.store-editor-header .modal-close,
+.collection-view-header .modal-close,
+.sort-modal-header .modal-close {
+  top: 50%;
+  right: 1.5rem;
+  transform: translateY(-50%);
 }
 
 .modal-close:hover {
@@ -2211,10 +2399,18 @@ body {
   border-radius: 0 0 8px 0;
   transform: translateY(-120%);
   transition: transform 0.15s ease;
+  /* translateY lo saca de la vista pero NO del hit-testing: seguía
+     ocupando la esquina superior izquierda con z-index 10000, así que un
+     toque ahí lo enfocaba y lo hacía aparecer sin parar. pointer-events lo
+     desactiva para el puntero sin afectar al foco por teclado, que es
+     justo por lo que existe este enlace. */
+  pointer-events: none;
 }
 
-.skip-to-content:focus {
+.skip-to-content:focus,
+.skip-to-content:focus-visible {
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 /* ===== Product Modal Styles (moved from ProductModal.jsx) ===== */
@@ -2931,8 +3127,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  /* 32px para casar con el .modal-close de este mismo header. */
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 50%;
   background: var(--bg-secondary);
@@ -2952,7 +3149,7 @@ body {
   height: 10px;
 }
 
-.cart-step-animated {
+.cart-step-animated.is-animated {
   animation: cart-fade-in 0.25s ease;
 }
 
@@ -3968,6 +4165,50 @@ body {
   margin-top: 0.25rem;
 }
 
+/* ===== Buscador global en la home ==========================================
+   La home se transforma en el buscador en vez de abrir un modal: mismas clases
+   de contenido que el drawer (gs-*, search-discovery) pero con la página como
+   contenedor, así que aquí solo hace falta el marco. */
+.home-search-main {
+  padding-top: 1.5rem;
+  padding-bottom: 4rem;
+  min-height: 70svh;
+}
+
+.home-search-view {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.home-search-view-bar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.home-search-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.home-search-back:hover {
+  background: var(--bg-secondary);
+}
+
+.home-search-back svg {
+  flex-shrink: 0;
+}
+
 /* Businesses NearYou */
 .businesses-carousel-section {
   margin-bottom: 2.5rem;
@@ -4146,16 +4387,246 @@ body {
   justify-content: center;
 }
 
-.businesses-near-hint {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin: -1rem 0 0.75rem;
-}
-
 /* Recommendations feed */
 .recommendations-section {
   content-visibility: auto;
   contain-intrinsic-size: 800px;
+}
+
+/* ===== Feed "Descubre" (productos + bisnes, razón 15:1, sin repetir) =====
+   Va al final de la home, después de "Bisnes cerca de ti". Usa el mismo
+   masonry que el resto del sitio: la mezcla se siente nativa y la tarjeta
+   de bisne es 1:1 para no romper el ritmo de la grilla. */
+
+/* Tarjeta de bisne dentro del feed (1:1 + metadata debajo, como ProductCard) */
+.feed-bisne-card {
+  break-inside: avoid;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .feed-bisne-card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .feed-bisne-card {
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Bloque visual 1:1 (mismo padding-hack que .ratio-square) */
+.feed-bisne-media {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding-top: 100%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent-green) 10%, var(--bg-secondary));
+  text-decoration: none;
+  color: inherit;
+}
+
+.feed-bisne-cover {
+  object-fit: cover;
+  opacity: 0.45;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.feed-bisne-card:hover .feed-bisne-cover {
+  transform: scale(1.06);
+}
+
+.feed-bisne-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  border: 2px solid var(--bg-primary);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feed-bisne-logo-img {
+  object-fit: cover;
+}
+
+.feed-bisne-initial {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--accent-green);
+}
+
+.feed-bisne-tag {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: var(--accent-green2);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  z-index: 2;
+}
+
+.feed-bisne-count {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.feed-bisne-info {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+@media (min-width: 768px) {
+  .feed-bisne-info {
+    padding: 1rem;
+    gap: 0.4rem;
+  }
+}
+
+.feed-bisne-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .feed-bisne-name {
+    font-size: 0.95rem;
+  }
+}
+
+.feed-bisne-slogan {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.feed-bisne-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.feed-bisne-footer .sp-follow-btn {
+  flex: 0 0 auto;
+}
+
+.feed-bisne-rating {
+  font-size: 0.76rem;
+}
+
+.feed-bisne-new {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-green);
+}
+
+/* Fin del feed: seothypt como "ya lo viste todo" en vez de dejar un loader
+   girando para siempre. El botón reordena con otra semilla (nada se repite
+   dentro de la misma pasada). */
+.discover-feed-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  max-width: 320px;
+  margin: 0.5rem auto 0;
+  padding: 1.75rem 1rem;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.discover-feed-end-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-green) 14%, var(--bg-primary));
+  color: var(--accent-green);
+  margin-bottom: 0.35rem;
+}
+
+.discover-feed-end-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.discover-feed-end-sub {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.discover-feed-end-btn {
+  margin-top: 0.6rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.discover-feed-end-btn:hover {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #fff;
 }
 
 /* ===== Fase 4 · Explorar ===== */
@@ -6888,6 +7359,7 @@ a.cart-bisne-name:hover {
   gap: 0.3rem;
   font-size: 0.85rem;
   color: var(--accent-green);
+  margin-left: auto;
 }
 
 .review-list {
@@ -7590,8 +8062,14 @@ a.cart-bisne-name:hover {
 
 .ticker-track {
   display: inline-flex;
-  flex: 1;
-  min-width: 0;
+  /* El track debe medir lo que miden sus copias, sin comprimirse. La
+     animación va de translateX(0) a translateX(-50%), así que el bucle solo
+     sale sin costura si el track es el doble de ancho que UNA copia. Con
+     flex:1 + min-width:0 las dos copias se estrujaban para caber en la
+     tarjeta, el -50% recorría una distancia incorrecta y el texto se veía
+     montado encima del otro. */
+  flex: 0 0 auto;
+  width: max-content;
 }
 
 .ticker-content {
@@ -7600,7 +8078,8 @@ a.cart-bisne-name:hover {
   gap: 0.35rem;
   white-space: nowrap;
   margin-right: 1.4rem;
-  min-width: 0;
+  /* Sin min-width:0 ni flex-shrink: la copia conserva su ancho natural. */
+  flex: 0 0 auto;
 }
 
 .ticker.marquee .ticker-track {
@@ -7640,25 +8119,6 @@ a.cart-bisne-name:hover {
   align-items: center;
   gap: 0.4rem;
   margin-left: auto;
-}
-
-.top-nav-fav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.top-nav-fav-btn:hover {
-  background: var(--bg-secondary);
-  color: #e74c3c;
 }
 
 /* ── Dropdown del buscador via portal (Fase D · sin solapes) ────── */
@@ -8210,7 +8670,13 @@ a.cart-bisne-name:hover {
   align-items: stretch;
 }
 
+/* display:block NO es opcional aquí. Estos tres son <a>, que son inline por
+   defecto, y en un inline `height`/`width`/`aspect-ratio` se ignoran. Como
+   el <img> va con `position: absolute; inset: 0`, su bloque contenedor es
+   este enlace: si queda inline, la caja mide el alto de una línea de texto y
+   la imagen se colapsa a una franja invisible. */
 .site-promo-landscape {
+  display: block;
   position: relative;
   min-height: 200px;
   border-radius: var(--radius-md);
@@ -8251,6 +8717,7 @@ a.cart-bisne-name:hover {
 }
 
 .site-promo-square {
+  display: block;
   position: relative;
   aspect-ratio: 1 / 1;
   border-radius: var(--radius-md);
@@ -8298,20 +8765,46 @@ a.cart-bisne-name:hover {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 0.9rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent 55%);
+  /* Padding inferior holgado: los dots del carrusel van centrados en la base
+     del banner (.banner-carousel-dots, bottom 0.75rem) y el texto, pegado al
+     borde, se les solapaba. */
+  padding: 0.9rem 1rem 2.75rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.25) 42%, transparent 72%);
   color: #fff;
   text-align: left;
 }
 
 .site-promo-title {
   font-weight: 800;
-  font-size: 0.95rem;
+  /* clamp en vez de rem fijo: los títulos se quedaban diminutos en escritorio
+     y en móvil, y con el banner en min(58vw, 320px) cualquier tamaño fijo
+     queda o ilegible o desbordado. */
+  font-size: clamp(0.95rem, 2.2vw, 1.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  /* Sin truncar, el texto se sale del banner: el bloque va pegado al borde
+     inferior y el alto del carousel lo fija la columna de cuadradas. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  /* Sombra suave: el texto cae sobre foto y el degradado solo no siempre
+     bastaba en banners claros. */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 .site-promo-subtitle {
-  font-size: 0.78rem;
-  opacity: 0.9;
+  font-size: clamp(0.72rem, 1.5vw, 0.98rem);
+  line-height: 1.3;
+  opacity: 0.92;
+  margin-top: 0.15rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Las cuadradas 1:1 no tienen dots, así que no reservan su banda. */
+.site-promo-square .site-promo-overlay {
+  padding: 0.7rem 0.7rem 0.8rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent 60%);
 }
 
 .site-promos-scroll {
@@ -8323,6 +8816,7 @@ a.cart-bisne-name:hover {
 }
 
 .site-promo-thumb {
+  display: block;
   position: relative;
   flex: 0 0 auto;
   width: 140px;
@@ -9139,7 +9633,10 @@ a.cart-bisne-name:hover {
 
 .store-fused-search input {
   width: 100%;
-  padding: 0.5rem 2.4rem 0.5rem 2.2rem;
+  /* El hueco de la derecha solo se reserva cuando hay botón de limpiar. Con el
+     campo vacío ese padding se comía ancho útil y el placeholder se cortaba
+     antes de tiempo, dejando un espacio en blanco al final. */
+  padding: 0.5rem 0.9rem 0.5rem 2.2rem;
   border: 1px solid var(--border-color);
   border-radius: 999px;
   background: var(--bg-primary);
@@ -9147,6 +9644,35 @@ a.cart-bisne-name:hover {
   font-size: 0.85rem;
   outline: none;
   transition: border-color 0.2s;
+  /* Si aun así no cabe, que termine en puntos suspensivos y no en corte seco. */
+  text-overflow: ellipsis;
+}
+
+.store-fused-search.has-value input {
+  padding-right: 2.4rem;
+}
+
+/* El buscador de la cabecera global vive dentro de .top-nav-actions, así que
+   crece hacia la izquierda sin empujar la marca ni las acciones de la derecha. */
+.top-nav-search {
+  flex: 1 1 180px;
+  min-width: 130px;
+  max-width: 340px;
+}
+
+@media (max-width: 720px) {
+  /* En móvil no cabe un campo entero: se queda como el icono compacto de antes. */
+  .top-nav-search {
+    flex: 0 0 34px;
+    min-width: 34px;
+    max-width: 34px;
+  }
+
+  .top-nav-search input {
+    width: 34px;
+    padding: 0.5rem 0 0.5rem 2.2rem;
+    cursor: pointer;
+  }
 }
 
 .store-fused-search input:focus {
@@ -9241,6 +9767,17 @@ a.cart-bisne-name:hover {
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   width: 100%;
+}
+
+/* Cada diapositiva ocupa el ancho COMPLETO del track. Sin flex-basis el item
+   se encolaba dentro del flex: el track nunca desbordaba (o sea, no había
+   scroll ni gesto posible) y la imagen, al no tener ancho propio, se
+   colapsaba a 0px. No declarar `height` aquí a propósito: el alto lo
+   resuelven las clases del consumidor según su layout. */
+.banner-carousel-item {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
 }
 
 .banner-carousel-track::-webkit-scrollbar {
@@ -9603,6 +10140,8 @@ a.cart-bisne-name:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Referencia del .modal-close para poder centrarlo en la fila. */
+  position: relative;
   padding: 0.8rem 1rem 0.4rem;
 }
 
@@ -9812,6 +10351,8 @@ a.cart-bisne-name:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Referencia del .modal-close para poder centrarlo en la fila. */
+  position: relative;
   padding: 0.9rem 1rem 0.5rem;
 }
 
@@ -10184,6 +10725,20 @@ a.cart-bisne-name:hover {
   background: color-mix(in srgb, var(--text-primary) 7%, transparent);
 }
 
+/* Casi todos los items son <Link>, pero "Mi carrito" es un <button> porque
+   abre el cajón en vez de navegar. Sin esto el botón traería fondo, borde y
+   fuente del sistema, y se vería distinto del resto. */
+button.store-owner-menu-item {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.7rem 0.4rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+}
+
 .store-owner-menu-item span {
   flex: 1;
 }
@@ -10408,12 +10963,14 @@ a.cart-bisne-name:hover {
   }
 }
 
-/* ── Producto: selector de categorías por grupo ── */
-.panel-form-cat-group {
+/* ── Categorías: títulos de grupo (no seleccionables) + hojas ──
+   Los grupos son solo encabezados que organizan; el producto se asigna
+   siempre a una hoja. Compartido por el panel y el asistente de tienda. */
+.cat-group {
   margin-bottom: 0.8rem;
 }
 
-.panel-form-cat-group-name {
+.cat-group-name {
   display: block;
   font-size: 0.72rem;
   font-weight: 700;

@@ -44,7 +44,6 @@ export default function CollectionsSection({
     <section className="collections-section">
       <h2 className="featured-title">
         Colecciones y Combos
-        <span className="featured-title-line" />
         {isOwner && (
           <button className="btn-offers-expand" onClick={onEditCollections} title="Editar colecciones">
             <Icon name="edit" size={13} />

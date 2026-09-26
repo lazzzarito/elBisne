@@ -33,7 +33,7 @@ function ProductosInner() {
     if (!bisne || !isSupabaseConfigured()) return;
     const supabase = createClient();
     const [{ data: prods }, { data: cats }, { data: cols }] = await Promise.all([
-      supabase.from("products").select("*, product_categories(category_id)").eq("bisne_id", bisne.id).order("created_at", { ascending: false }),
+      supabase.from("products").select("*").eq("bisne_id", bisne.id).order("created_at", { ascending: false }),
       supabase.from("categories").select("id, name, slug, group_name").order("group_name, name"),
       supabase.from("collections").select("id, title").eq("bisne_id", bisne.id).order("position"),
     ]);
@@ -44,26 +44,12 @@ function ProductosInner() {
   }, [bisne]);
 
   useEffect(() => {
-    if (!bisne || !isSupabaseConfigured()) return;
-    let cancelled = false;
-    (async () => {
-      const supabase = createClient();
-      const [{ data: prods }, { data: cats }, { data: cols }] = await Promise.all([
-        supabase.from("products").select("*").eq("bisne_id", bisne.id).order("created_at", { ascending: false }),
-        supabase.from("categories").select("id, name").order("name"),
-        supabase.from("collections").select("id, title").eq("bisne_id", bisne.id).order("position"),
-      ]);
-      if (!cancelled) {
-        setProducts(prods || []);
-        setCategories(cats || []);
-        setCollections(cols || []);
-        setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [bisne]);
+    // `load` es la carga de datos (no un setState derivado del render): el
+    // lint de react-hooks marca cualquier llamada directa, pero el fetch
+    // asíncrono dentro es exactamente el caso de uso legítimo del efecto.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+  }, [load]);
 
   // Abrir formulario si viene de la acción rápida "Añadir producto" (derivado en render)
   const [openedFromQuery, setOpenedFromQuery] = useState(false);

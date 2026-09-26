@@ -60,7 +60,7 @@ export default function CustomerInfoModal({ storeConfig }) {
     <div className="store-info-overlay" onClick={handleClose}>
       <div className="store-info-modal account-suggestion" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Crea tu cuenta en elBisne">
         <button className="modal-close" onClick={handleClose} aria-label="Cerrar">
-          <Icon name="close" size={18} />
+          <Icon name="close" size={20} />
         </button>
 
         <div className="account-suggestion-body">

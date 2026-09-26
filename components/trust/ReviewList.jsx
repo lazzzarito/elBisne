@@ -69,7 +69,6 @@ export default function ReviewList({ bisneId, refreshKey = 0, onLeaveReview }) {
     <section className="review-list-section" aria-label="Reseñas de la tienda">
       <h2 className="featured-title">
         Reseñas
-        <span className="featured-title-line" />
         {total > 0 && (
           <span className="review-list-avg">
             <Icon name="star" size={13} /> {avg.toFixed(1)} ({reviews.length} de {total})

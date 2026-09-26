@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { groupCategories, FALLBACK_GROUP } from "@/lib/category-groups";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { lockBodyScroll } from "@/lib/scroll-lock";
 import { useHistoryPopup } from "@/lib/use-history-popup";
@@ -17,7 +18,15 @@ const slugifyHandle = (v) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 20); // los SSG paths y el prefijo visual quedan cortos y legibles
 
-const FALLBACK_CATEGORIES = ["Ropa", "Comida", "Tecnología", "Hogar", "Belleza", "Otros"];
+// Solo hojas reales del catálogo. "Tecnología" y "Hogar" son títulos de grupo,
+// no categorías, y por eso no pueden aparecer aquí como opciones.
+const FALLBACK_CATEGORIES = [
+  "Ropa de Mujer",
+  "Celulares y Accesorios",
+  "Muebles",
+  "Alimentos y Bebidas",
+  "Otros - General",
+];
 
 export default function ActivateStoreWizard({ user, storeConfig, onCreated, existing = null }) {
   const router = useRouter();
@@ -241,8 +250,12 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated, exis
     }
   };
 
-  const categoryOptions = categories.length > 0 ? categories.map((c) => c.name) : FALLBACK_CATEGORIES;
-  const categorySlugByName = Object.fromEntries(categories.map((c) => [c.name, c.slug]));
+  // Sin Supabase configurado no hay catálogo que agrupar: se cae a un grupo
+  // único. Las hojas del respaldo son nombres reales de hoja, nunca títulos.
+  const grouped = groupCategories(categories);
+  const categoriesByGroup = grouped.length
+    ? grouped
+    : [[FALLBACK_GROUP, FALLBACK_CATEGORIES.map((name) => ({ name, slug: name, group_name: FALLBACK_GROUP }))]];
 
   return (
     <>
@@ -263,7 +276,7 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated, exis
             <div className="store-wizard-handlebar" aria-hidden="true" />
 
             <button className="modal-close store-wizard-close" onClick={close} aria-label="Cerrar">
-              <Icon name="close" size={18} />
+              <Icon name="close" size={20} />
             </button>
 
             <div className="store-wizard-scroll">
@@ -355,23 +368,31 @@ export default function ActivateStoreWizard({ user, storeConfig, onCreated, exis
                 <div className="store-wizard-form">
                   <div className="cinfo-field">
                     <label className="cinfo-label">Categoría principal</label>
-                    <div className="store-wizard-chips">
-                      {categoryOptions.map((name) => (
-                        <label
-                          key={name}
-                          className={`cinfo-chip${form.categorySlug === (categorySlugByName[name] || name) ? " active" : ""}`}
-                        >
-                          <input
-                            type="radio"
-                            name="wizard-category"
-                            value={name}
-                            checked={form.categorySlug === (categorySlugByName[name] || name)}
-                            onChange={() => setField("categorySlug", categorySlugByName[name] || name)}
-                          />
-                          {name}
-                        </label>
-                      ))}
-                    </div>
+                    {categoriesByGroup.map(([group, items]) => (
+                      <div key={group} className="cat-group">
+                        <span className="cat-group-name">{group}</span>
+                        <div className="store-wizard-chips">
+                          {items.map((c) => {
+                            const name = c.name;
+                            return (
+                              <label
+                                key={name}
+                                className={`cinfo-chip${form.categorySlug === (c.slug || name) ? " active" : ""}`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="wizard-category"
+                                  value={c.slug || name}
+                                  checked={form.categorySlug === (c.slug || name)}
+                                  onChange={() => setField("categorySlug", c.slug || name)}
+                                />
+                                {name}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="cinfo-field">

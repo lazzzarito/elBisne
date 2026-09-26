@@ -49,7 +49,7 @@ export default function ProfileAuthModal() {
         <div className="cart-header">
           <h2>Únete a elBisne</h2>
           <button className="modal-close" onClick={close} aria-label="Cerrar">
-            <Icon name="close" size={18} />
+            <Icon name="close" size={20} />
           </button>
         </div>
 

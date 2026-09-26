@@ -49,7 +49,7 @@ export default function WriteReviewModal({ bisneId, bisneName, onClose, onSaved 
       <div className="store-info-overlay" onClick={onClose}>
         <div className="store-info-modal" onClick={(e) => e.stopPropagation()}>
           <button className="modal-close" onClick={onClose}>
-            <Icon name="close" size={18} />
+            <Icon name="close" size={20} />
           </button>
           <div className="store-info-scroll">
             <div className="store-info-body" style={{ paddingBottom: "1.5rem" }}>
@@ -107,7 +107,7 @@ export default function WriteReviewModal({ bisneId, bisneName, onClose, onSaved 
     <div className="store-info-overlay" onClick={onClose}>
       <form className="store-info-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
         <button type="button" className="modal-close" onClick={onClose}>
-          <Icon name="close" size={18} />
+          <Icon name="close" size={20} />
         </button>
         <div className="store-info-scroll">
           <div className="store-info-body" style={{ paddingBottom: "1.5rem" }}>

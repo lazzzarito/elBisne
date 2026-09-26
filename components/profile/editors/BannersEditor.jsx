@@ -82,7 +82,7 @@ export default function BannersEditor({ bisneId, banners = [], collections = [],
       <div className="store-editor" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Editar banners">
         <div className="store-editor-header">
           <h2 className="store-editor-title">Banners y destacados</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={18} /></button>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={20} /></button>
         </div>
 
         <div className="store-editor-scroll">

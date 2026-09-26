@@ -68,7 +68,7 @@ export default function ThemeEditorInline({ bisneId, initialPinned, initialAccen
     <div className="theme-inline-overlay" onClick={onClose}>
       <div className="theme-inline-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Editar tienda">
         <button className="modal-close" onClick={onClose} aria-label="Cerrar">
-          <Icon name="close" size={18} />
+          <Icon name="close" size={20} />
         </button>
 
         <h2 className="theme-inline-title">Editar tienda</h2>

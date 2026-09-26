@@ -44,9 +44,13 @@ export default function SearchModal({ storeConfig }) {
     return catalog.products.filter((p) => p.offer && p.originalPrice && p.originalPrice > p.priceUSD);
   }, [catalog]);
 
-  // Apertura externa desde el icono de búsqueda del TopNav
+  // Apertura externa: el campo del TopNav entrega la consulta ya escrita.
   useEffect(() => {
-    const open = () => setIsOpen(true);
+    const open = (e) => {
+      const q = e?.detail?.query;
+      if (typeof q === "string" && q) setQuery(q);
+      setIsOpen(true);
+    };
     window.addEventListener("open-search", open);
     return () => window.removeEventListener("open-search", open);
   }, []);
@@ -89,7 +93,7 @@ export default function SearchModal({ storeConfig }) {
         <div className="cart-header">
           <h2>Buscar</h2>
           <button className="modal-close" onClick={close} aria-label="Cerrar buscador">
-            <Icon name="close" size={18} />
+            <Icon name="close" size={20} />
           </button>
         </div>
 

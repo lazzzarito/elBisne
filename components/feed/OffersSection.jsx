@@ -2,22 +2,15 @@
 
 import MasonryGrid from "@/components/MasonryGrid";
 import ProductCard from "@/components/ProductCard";
-import Icon from "@/components/Icon";
 
-export default function OffersSection({ offers, onAddToCart, onOpenDetails, favoriteIds, onToggleFavorite, onSeeAll, showBisne = false, bisneMap }) {
+export default function OffersSection({ offers, onAddToCart, onOpenDetails, favoriteIds, onToggleFavorite, showBisne = false, bisneMap }) {
   if (!offers || !offers.length) return null;
   const visible = offers.slice(0, 8);
 
   return (
     <section className="featured-section" aria-label="Ofertas">
-      <h2 className="featured-title">
-        Productos en Oferta
-        <span className="featured-title-line" />
-        <button type="button" className="btn-offers-expand" onClick={() => onSeeAll?.()}>
-          <Icon name="plus" />
-          <span className="btn-expand-label">Ver todas</span>
-        </button>
-      </h2>
+      <h2 className="featured-title">Productos en Oferta</h2>
+      <p className="section-subtitle">Precios rebajados por tiempo limitado</p>
       <MasonryGrid key="home-offers">
         {visible.map((product, i) => (
           <ProductCard

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
+import SearchField, { storeSearchPlaceholder } from "@/components/SearchField";
 import NotificationsBadge from "@/components/notifications/NotificationsBadge";
 
 // ── Cabecera fusionada de la tienda (layout Whatalog + acciones elBisne) ──
@@ -18,7 +18,6 @@ export default function StoreHeader({
   isOwner = false,
   searchQuery,
   onSearchChange,
-  onOpenFavorites,
   onOpenStoreMenu,
   onEditSection,
   categories,
@@ -152,23 +151,12 @@ export default function StoreHeader({
           </div>
         </div>
 
-        <div className="store-fused-search">
-          <span className="store-fused-search-icon" aria-hidden="true">
-            <Icon name="search" size={15} />
-          </span>
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-            placeholder={`Buscar en ${store?.business_name || "la tienda"}…`}
-            aria-label="Buscar en esta tienda"
-          />
-          {searchQuery && (
-            <button type="button" className="store-fused-search-clear" onClick={() => onSearchChange?.("")} aria-label="Limpiar búsqueda">
-              <Icon name="close" size={13} />
-            </button>
-          )}
-        </div>
+        <SearchField
+          value={searchQuery || ""}
+          onChange={onSearchChange}
+          placeholder={storeSearchPlaceholder(store?.business_name)}
+          ariaLabel="Buscar en esta tienda"
+        />
 
         {(categories.length > 0 || !isOwner) && (
           <div className="store-fused-cats">
@@ -201,10 +189,6 @@ export default function StoreHeader({
             </button>
           )}
 
-          <button type="button" className="store-fused-icon-btn" onClick={onOpenFavorites} title="Mis favoritos" aria-label="Mis favoritos">
-            <Icon name="heart-outline" size={17} />
-          </button>
-
           <NotificationsBadge />
 
           {isOwner && (
@@ -213,21 +197,9 @@ export default function StoreHeader({
             </button>
           )}
 
-          {user ? (
-            <Link href="/perfil" className="store-fused-icon-btn" title="Mi perfil" aria-label="Mi perfil">
-              <Icon name="user" size={17} />
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className="store-fused-icon-btn"
-              onClick={() => window.dispatchEvent(new CustomEvent("open-profile-auth"))}
-              title="Iniciar sesión o crear cuenta"
-              aria-label="Iniciar sesión o crear cuenta"
-            >
-              <Icon name="user" size={17} />
-            </button>
-          )}
+          {/* Sin botón de perfil ni de favoritos aquí: en la página del bisne la
+              identidad la lleva el menú de gestión del dueño, y Favoritos se
+              abre desde el FAB del carrito, igual que en el resto del sitio. */}
 
           {!isOwner && contactHref && (
             <a href={contactHref} target="_blank" rel="noopener noreferrer" className="store-fused-contact">

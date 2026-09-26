@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { groupCategories } from "@/lib/category-groups";
 import { useApp } from "@/context/AppContext";
 import SafeImage from "@/components/SafeImage";
 import Icon from "@/components/Icon";
@@ -24,20 +25,18 @@ const emptyForm = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Categorías ya asignadas al producto (1–3): primary + m2m + catálogo mapeado.
-function resolveCategoryIds(product, categories) {
-  if (!product) return [];
-  const ids = [];
-  const push = (id) => {
-    if (id && !ids.includes(id)) ids.push(id);
-  };
-  push(product.category_id);
-  (product.product_categories || []).forEach((pc) => push(pc.category_id));
-  (product.categories || []).forEach((name) => {
-    const c = (categories || []).find((x) => x.name === name);
-    push(c?.id);
-  });
-  return ids.slice(0, 3);
+// Categoría del producto. Una sola por producto: `products.category_id` es la
+// fuente de verdad, y `product_categories` queda como espejo de una fila para
+// no romper nada que todavía la lea. Antes se aceptaban hasta 3 y el form
+// guardaba en ambas tablas, lo que hacía que un mismo producto apareciera
+// listado en categorías distintas según qué consulta lo trajera.
+function resolveCategoryId(product, categories) {
+  if (!product) return null;
+  if (product.category_id) return product.category_id;
+  const fromName = (product.categories || []).find((name) =>
+    (categories || []).some((x) => x.name === name)
+  );
+  return (categories || []).find((x) => x.name === fromName)?.id || null;
 }
 
 function initialForm(product) {
@@ -60,7 +59,7 @@ export default function ProductForm({ bisneId, product, categories = [], collect
   const dbId = product?.dbId || (product?.id && UUID_RE.test(product.id) ? product.id : null) || null;
 
   const [form, setForm] = useState(() => initialForm(product));
-  const [categoryIds, setCategoryIds] = useState(() => resolveCategoryIds(product, categories));
+  const [categoryId, setCategoryId] = useState(() => resolveCategoryId(product, categories));
   const [collectionIds, setCollectionIds] = useState([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -121,40 +120,22 @@ export default function ProductForm({ bisneId, product, categories = [], collect
     }
   };
 
-  const syncCategories = async (supabase, productId) => {
-    await supabase.from("product_categories").delete().eq("product_id", productId);
-    if (categoryIds.length > 0) {
-      await supabase.from("product_categories").insert(
-        categoryIds.map((cid, i) => ({ product_id: productId, category_id: cid, position: i }))
-      );
-    }
-  };
+  // Antes se escribía la categoría también en product_categories (tabla m2m,
+  // 1..3 filas por producto) y por eso un mismo producto salía listado en
+  // categorías distintas según qué consulta lo trajera. Esa tabla ya no
+  // existe (migración 018): products.category_id es lo único que se guarda.
+  // El formulario ya es de selección única (radio) y `submit` exige una.
 
-  const toggleCategory = (id) => {
-    if (categoryIds.includes(id)) {
-      setCategoryIds((prev) => prev.filter((x) => x !== id));
-      return;
-    }
-    if (categoryIds.length >= 3) {
-      showToast("Máximo 3 categorías por producto", "warning");
-      return;
-    }
-    setCategoryIds((prev) => [...prev, id]);
-  };
-
-  const categoriesByGroup = useMemo(() => {
-    const groups = {};
-    (categories || []).forEach((c) => {
-      const g = c.group_name || "General";
-      (groups[g] = groups[g] || []).push(c);
-    });
-    return groups;
-  }, [categories]);
+  const categoriesByGroup = useMemo(() => groupCategories(categories), [categories]);
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || form.price === "" || Number.isNaN(Number(form.price))) {
       showToast("Nombre y precio son obligatorios", "warning");
+      return;
+    }
+    if (!categoryId) {
+      showToast("Elige una categoría", "warning");
       return;
     }
     setSaving(true);
@@ -170,7 +151,7 @@ export default function ProductForm({ bisneId, product, categories = [], collect
         featured: form.featured,
         offer: !!form.original_price && Number(form.original_price) > Number(form.price),
         images: form.images,
-        category_id: categoryIds[0] || null,
+        category_id: categoryId,
         // Perfiles personales: cada guardado renueva la caducidad a 30 días.
         ...(isPersonal
           ? { expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }
@@ -192,7 +173,6 @@ export default function ProductForm({ bisneId, product, categories = [], collect
       }
 
       await syncCollections(supabase, productId);
-      await syncCategories(supabase, productId);
 
       showToast(product ? "Producto actualizado" : "Producto creado");
       onSaved?.(productId);
@@ -279,19 +259,20 @@ export default function ProductForm({ bisneId, product, categories = [], collect
         </div>
 
         <div className="cinfo-field">
-          <label className="cinfo-label">Categorías (elige de 1 a 3)</label>
+          <label className="cinfo-label">Categoría</label>
           {Object.entries(categoriesByGroup).map(([group, items]) => (
-            <div key={group} className="panel-form-cat-group">
-              <span className="panel-form-cat-group-name">{group}</span>
+            <div key={group} className="cat-group">
+              <span className="cat-group-name">{group}</span>
               <div className="store-wizard-chips">
                 {items.map((c) => {
-                  const active = categoryIds.includes(c.id);
+                  const active = categoryId === c.id;
                   return (
                     <label key={c.id} className={`cinfo-chip${active ? " active" : ""}`}>
                       <input
-                        type="checkbox"
+                        type="radio"
+                        name="product-category"
                         checked={active}
-                        onChange={() => toggleCategory(c.id)}
+                        onChange={() => setCategoryId(c.id)}
                       />
                       {c.name}
                     </label>

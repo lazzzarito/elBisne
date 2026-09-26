@@ -18,13 +18,25 @@ export default function Ticker({ children, className = "", title = "" }) {
     const measure = () => {
       const inner = contentRef.current;
       if (!inner) return;
-      const w = inner.scrollWidth;
+      // getBoundingClientRect en vez de scrollWidth: da el ancho real con
+      // decimales y no redondea, que es lo que decidía si el texto entraba.
+      const w = inner.getBoundingClientRect().width;
+      if (w === 0) return;
       setIsMarquee(w > box.clientWidth + 2);
       setDuration(Math.max(8, Math.round(w / 55)));
     };
     measure();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
-    if (ro) ro.observe(box);
+    // Se observan la caja Y el contenido. Observar solo la caja no detectaba
+    // que el texto cambiase de ancho, así que una categoría larga se quedaba
+    // sin slide aunque desbordase.
+    if (ro) {
+      ro.observe(box);
+      if (contentRef.current) ro.observe(contentRef.current);
+    }
+    // La etiqueta va en mayúsculas con letter-spacing: si se mide antes de que
+    // cargue la tipografía, el ancho sale corto y el marquee no se activa.
+    if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {});
     window.addEventListener("resize", measure);
     return () => {
       window.removeEventListener("resize", measure);

@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useCallback, useState, useEffect, useRef, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import SafeImage from "@/components/SafeImage";
-import { lockBodyScroll } from "@/lib/scroll-lock";import { useHistoryPopup } from "@/lib/use-history-popup";
+import { lockBodyScroll } from "@/lib/scroll-lock";
+import { useHistoryPopup } from "@/lib/use-history-popup";
 import { useFocusTrap } from "@/lib/use-focus-trap";
+import { useBisneInfo } from "@/lib/use-bisne-info";
 import { getChannelUrl, getDefaultChannel, getEnabledChannels, buildOrderMessage, getDeliveryMode } from "@/lib/messaging";
 import { loadBisneIndex, buildBisneStoreConfig, createOrder } from "@/lib/orders";
+import { groupByBisne, groupTotalLabel } from "@/lib/bisne-groups";
 import ChannelSplitButton from "@/components/ChannelSplitButton";
+import FavoritesPanel from "@/components/drawer/FavoritesPanel";
 import Icon from "@/components/Icon";
+
+const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
 
 const CUSTOMER_KEY = "elbisne_customer";
 
@@ -35,35 +42,16 @@ const PAYMENT_OPTIONS = [
   "Otro",
 ];
 
-// ── Agrupar items del carrito por Bisne ─────────────────────────────────
-function groupByBisne(cartItems, bisneIndex) {
-  const groups = new Map();
-  cartItems.forEach((item) => {
-    const bisneId = item.bisneId || null;
-    if (!groups.has(bisneId)) {
-      const info = (bisneId && bisneIndex.get(bisneId)) || null;
-      groups.set(bisneId, {
-        bisneId,
-        name: info?.name || null,
-        handle: info?.handle || null,
-        items: [],
-      });
-    }
-    groups.get(bisneId).items.push(item);
-  });
-  // Bisnes con datos conocidos primero; sin bisne al final
-  return Array.from(groups.values()).sort((a, b) => {
-    if (a.bisneId === b.bisneId) return 0;
-    if (!a.bisneId) return 1;
-    if (!b.bisneId) return -1;
-    return (a.name || "").localeCompare(b.name || "");
-  });
-}
-
-export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveItems, onClearCart, storeConfig, onOrderComplete, onEditItem }) {
+export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveItems, onClearCart, storeConfig, onOrderComplete }) {
   const pathname = usePathname();
-  const { storeChrome } = useApp();
+  const { storeChrome, addToCart, favoriteIds, toggleFavorite, withStock, handleOrderComplete } = useApp();
   const [isOpen, setIsOpen] = useState(false);
+  // "cart" | "favorites". El cajón es una sola superficie con dos pestañas:
+  // el carrito y los favoritos se abren desde el mismo sitio y comparten
+  // overlay, foco y scroll, así que solo cambia el panel que se pinta.
+  const [activeTab, setActiveTab] = useState("cart");
+  const [openProduct, setOpenProduct] = useState(null);
+  const openProductBisne = useBisneInfo(openProduct?.bisneId);
   const [step, setStep] = useState(1);
   const [showSummary, setShowSummary] = useState(false);
   const [customer, setCustomer] = useState(() => defaultCustomer(storeConfig));
@@ -200,12 +188,31 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
     setIsOpen(false);
   };
 
-  // Apertura externa desde el botón flotante u otros botones de carrito
+  // El producto se abre siempre sobre el cajón, así que volver de él devuelve
+  // al usuario donde estaba (carrito o favoritos) en vez de cerrar todo.
+  const handleOpenProduct = (product) => {
+    // La línea del carrito lleva id = producto + firma de opciones; el modal
+    // conoce el producto por su id real (favoritos, índice de bisnes, reset).
+    setOpenProduct({ ...product, id: product.productId || product.id });
+  };
+
+  // Apertura externa: el botón flotante y el corazón de la barra de navegación
+  // abren el mismo cajón, cada uno en su pestaña. Por eso ya no hace falta
+  // que el header ni el catálogo monten un modal de favoritos propio.
+  //
+  // Cada punto de entrada fija la pestaña, y el FAB usa openCart() en lugar de
+  // un setIsOpen(true) suelto: si no, reabrir el cajón después de haber pasado
+  // por favoritos lo devolvía a esa pestaña, y el botón del carrito tenía que
+  // llevar siempre al carrito.
+  const openCart = useCallback(() => { setActiveTab("cart"); setIsOpen(true); }, []);
+
+  // "open-cart" lo emite el menú de gestión del dueño: en su propia tienda el
+  // FAB se sustituye por el de publicar producto y la cabecera no lleva
+  // carrito, así que sin esto no habría forma de abrir el cajón desde ahí.
   useEffect(() => {
-    const open = () => setIsOpen(true);
-    window.addEventListener("open-cart", open);
-    return () => window.removeEventListener("open-cart", open);
-  }, []);
+    window.addEventListener("open-cart", openCart);
+    return () => window.removeEventListener("open-cart", openCart);
+  }, [openCart]);
 
   // Visibilidad del footer (catálogos con footer largo): FAB → scroll-top
   useEffect(() => {
@@ -218,6 +225,27 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
 
   const showingConfirm = confirmed && confirmedGroup;
   const itemsToShow = showingConfirm ? confirmedGroup.items : [];
+
+  // Las pestañas son el modo de navegación. En el paso 2 (detalles) y tras
+  // confirmar ceden su sitio al botón de volver y al título, porque ahí el
+  // usuario está en un flujo comprometido y no debería saltar de panel.
+  const isStepTwo = !confirmed && cartItems.length > 0 && step === 2;
+  // Sin condicionar a cartItems: con el carrito vacío las pills tienen que
+  // seguir visibles o no habría forma de llegar a Favoritos desde el FAB.
+  const showTabs = !confirmed && step === 1;
+  const cartCount = useMemo(
+    () => cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0),
+    [cartItems]
+  );
+
+  const onTabKeyDown = (e) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const next = activeTab === "cart" ? "favorites" : "cart";
+    setActiveTab(next);
+    const id = next === "cart" ? "cart-tab-cart" : "cart-tab-favorites";
+    document.getElementById(id)?.focus();
+  };
 
   // El carrito es global (layout) y el FAB es su único punto de acceso.
   // Solo se oculta en páginas inmersivas ajenas a la compra. En el perfil del
@@ -248,7 +276,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
       {showFab && (
         <button
           className={`floating-cart-btn${isFooterVisible ? " scroll-top" : ""}`}
-          onClick={isFooterVisible ? scrollToTop : () => setIsOpen(true)}
+          onClick={isFooterVisible ? scrollToTop : openCart}
         >
           <span className="cart-btn-icon">
             {isFooterVisible ? (
@@ -271,7 +299,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
 
       <div className={`cart-drawer ${isOpen ? "open" : ""}`} ref={cartRef}>
         <div className="cart-header">
-          {!confirmed && cartItems.length > 0 && step === 2 && (
+          {isStepTwo && (
             <button className="cart-header-back" onClick={() => setStep(1)} aria-label="Volver al carrito">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -279,7 +307,43 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
               </svg>
             </button>
           )}
-          <h2>{confirmed ? "¡Pedido confirmado!" : !confirmed && cartItems.length > 0 && step === 2 ? "Detalles" : "Tu Carrito"}</h2>
+          {showTabs ? (
+            <div className="cart-tabs" role="tablist" aria-label="Carrito y favoritos">
+              <button
+                type="button"
+                role="tab"
+                id="cart-tab-cart"
+                aria-selected={activeTab === "cart"}
+                aria-controls="cart-panel-cart"
+                tabIndex={activeTab === "cart" ? 0 : -1}
+                className={`cart-tab${activeTab === "cart" ? " active" : ""}`}
+                onClick={() => setActiveTab("cart")}
+                onKeyDown={onTabKeyDown}
+              >
+                <Icon name="shopping-bag" size={14} />
+                <span>Carrito</span>
+                {cartCount > 0 && <span className="cart-tab-count">{cartCount}</span>}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="cart-tab-favorites"
+                aria-selected={activeTab === "favorites"}
+                aria-controls="cart-panel-favorites"
+                tabIndex={activeTab === "favorites" ? 0 : -1}
+                className={`cart-tab${activeTab === "favorites" ? " active" : ""}`}
+                onClick={() => setActiveTab("favorites")}
+                onKeyDown={onTabKeyDown}
+              >
+                <Icon name="heart-donate" size={14} />
+                <span>Favoritos</span>
+                {favoriteIds.length > 0 && <span className="cart-tab-count">{favoriteIds.length}</span>}
+              </button>
+            </div>
+          ) : (
+            <h2>{confirmed ? "¡Pedido confirmado!" : isStepTwo ? "Detalles" : "Tu Carrito"}</h2>
+          )}
+          {showTabs && <h2 className="sr-only">{activeTab === "favorites" ? "Tus favoritos" : "Tu Carrito"}</h2>}
           <button className="modal-close" onClick={handleClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -288,8 +352,15 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
           </button>
         </div>
 
-        <div className="cart-items-container">
-          {showingConfirm ? (
+        <div
+          className="cart-items-container"
+          id={activeTab === "favorites" ? "cart-panel-favorites" : "cart-panel-cart"}
+          role="tabpanel"
+          aria-labelledby={activeTab === "favorites" ? "cart-tab-favorites" : "cart-tab-cart"}
+        >
+          {activeTab === "favorites" ? (
+            <FavoritesPanel onOpenProduct={handleOpenProduct} bisneIndex={bisneIndex} />
+          ) : showingConfirm ? (
             <>
               <div className="cart-confirmed">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -402,11 +473,15 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
               </div>
             </>
           ) : (
-          <div className="cart-step-animated" key={step}>
+          /* El fundido solo se aplica al cambiar de paso. Este div vive únicamente
+             en la rama del carrito, así que al ir a Favoritos y volver se
+             remonta y la animación se repetía sola, con un parpadeo al cambiar
+             de pestaña. Como las pills solo existen en el paso 1, ahí el
+             fundido no aporta nada. */
+          <div className={`cart-step-animated${step === 1 ? "" : " is-animated"}`} key={step}>
           {step === 1 ? (
             <>
               {groups.map((group) => {
-                const groupTotal = group.items.reduce((acc, item) => acc + item.priceUSD * item.quantity, 0);
                 return (
                   <div className="cart-bisne-group" key={group.bisneId || "sin-bisne"}>
                     <div className="cart-bisne-header">
@@ -421,17 +496,17 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
                           {group.name || "Productos del catálogo"}
                         </span>
                       )}
-                      <span className="cart-bisne-total">${groupTotal.toFixed(2)}</span>
+                      <span className="cart-bisne-total">{groupTotalLabel(group, true)}</span>
                     </div>
 
                     {group.items.map((item) => (
                       <div className="cart-item" key={item.id}>
-                        <div className="cart-item-image-wrapper" onClick={() => onEditItem?.(item)} style={{ cursor: "pointer" }}>
+                        <div className="cart-item-image-wrapper cart-item-open" onClick={() => handleOpenProduct(item)}>
                           <SafeImage src={item.image} alt={item.name} width={80} height={80} className="cart-item-image" />
                         </div>
                         <div className="cart-item-details">
                           {item.category && <span className="cart-item-category">{item.category}</span>}
-                          <span className="cart-item-title" onClick={() => onEditItem?.(item)} style={{ cursor: "pointer" }}>{item.name}</span>
+                          <span className="cart-item-title cart-item-open" onClick={() => handleOpenProduct(item)}>{item.name}</span>
                           {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
                             <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "block", marginBottom: "0.2rem" }}>
                               {Object.entries(item.selectedOptions).map(([k, v]) => `${k}: ${v}`).join(" | ")}
@@ -624,7 +699,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
           )}
         </div>
 
-        {!confirmed && cartItems.length > 0 && step === 2 && (
+        {activeTab === "cart" && isStepTwo && (
           <div className="cart-footer">
             <ChannelSplitButton
               enabledChannels={enabledChannels}
@@ -638,7 +713,7 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
           </div>
         )}
 
-        {!confirmed && cartItems.length > 0 && step === 1 && (
+        {activeTab === "cart" && !confirmed && cartItems.length > 0 && step === 1 && (
           <div className="cart-footer">
             <button className="btn-checkout" onClick={() => setStep(2)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -650,6 +725,20 @@ export default function Cart({ cartItems, onUpdateQty, onRemoveItem, onRemoveIte
           </div>
         )}
       </div>
+
+      {/* Un solo ProductModal para toda la superficie: lo usan tanto las líneas
+          del carrito como las de favoritos. Va después del cajón para montarse
+          por encima de él. */}
+      <ProductModal
+        product={withStock(openProduct)}
+        onClose={() => setOpenProduct(null)}
+        onAddToCart={addToCart}
+        storeConfig={storeConfig}
+        onOrderComplete={handleOrderComplete}
+        isFavorited={openProduct ? favoriteIds.includes(openProduct.id) : false}
+        onToggleFavorite={toggleFavorite}
+        bisneInfo={openProductBisne}
+      />
 
     </>
   );

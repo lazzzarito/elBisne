@@ -24,12 +24,12 @@ import CollectionsEditor from "@/components/profile/editors/CollectionsEditor";
 import StoreEditor from "@/components/profile/editors/StoreEditor";
 import PublishProductModal from "@/components/profile/PublishProductModal";
 import EmptyState from "@/components/ui/EmptyState";
+import SectionDivider from "@/components/ui/SectionDivider";
 const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false, loading: () => null });
 const PromoModal = dynamic(() => import("@/components/PromoModal"), { ssr: false, loading: () => null });
 const OfferModal = dynamic(() => import("@/components/OfferModal"), { ssr: false, loading: () => null });
 const CustomerInfoModal = dynamic(() => import("@/components/CustomerInfoModal"), { ssr: false, loading: () => null });
 const LegalInfoModal = dynamic(() => import("@/components/LegalInfoModal"), { ssr: false, loading: () => null });
-const FavoritesModal = dynamic(() => import("@/components/FavoritesModal"), { ssr: false, loading: () => null });
 
 export default function CatalogContainer({
   initialProducts,
@@ -75,7 +75,7 @@ export default function CatalogContainer({
       const todayIso = new Date().toISOString();
       const { data, error } = await createClient()
         .from("products")
-        .select("*, categories!products_category_id_fkey(name), product_categories(categories(id, name, slug, group_name)), bisnes(handle)")
+        .select("*, categories!products_category_id_fkey(name), bisnes(handle)")
         .eq("bisne_id", targetId)
         .or(`expires_at.is.null,expires_at.gt.${todayIso}`)
         .order("sort_order", { ascending: true });
@@ -300,7 +300,6 @@ export default function CatalogContainer({
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [showOffers, setShowOffers] = useState(false);
-  const [showFavorites, setShowFavorites] = useState(false);
 
   const footerRef = useRef(null);
 
@@ -439,8 +438,6 @@ export default function CatalogContainer({
         sortBy={sortBy}
         onSortChange={setSortBy}
         storeConfig={storeConfig}
-        favoriteCount={favoriteIds.length}
-        onOpenFavorites={() => setShowFavorites(true)}
         productCount={sortedProducts.length}
         totalCount={productList.length}
         storeMode={storeMode}
@@ -486,7 +483,6 @@ export default function CatalogContainer({
           <section className="featured-section" ref={offersRef}>
             <h2 className="featured-title">
               Productos en Oferta
-              <span className="featured-title-line" />
               <button
                 className="btn-offers-expand"
                 onClick={() => setShowOffers(true)}
@@ -515,25 +511,27 @@ export default function CatalogContainer({
         )}
 
         {sectionCollections.length > 0 && (
-          <CollectionsSection
-            collections={sectionCollections}
-            onOpenCollection={setSelectedCollection}
-            isOwner={isOwner}
-            onEditCollections={() => setActiveEditor("collections")}
-          />
+          <>
+            <SectionDivider />
+            <CollectionsSection
+              collections={sectionCollections}
+              onOpenCollection={setSelectedCollection}
+              isOwner={isOwner}
+              onEditCollections={() => setActiveEditor("collections")}
+            />
+          </>
         )}
 
         <div ref={catalogRef}>
-          <h1 className="featured-title" style={{ marginTop: offerProducts.length > 0 ? "2.5rem" : 0 }}>
+          <h1 className="featured-title">
             Productos Disponibles
-            <span className="featured-title-line" />
             <button
               className="btn-filter-catalog"
               onClick={() => window.dispatchEvent(new CustomEvent("open-sort-menu"))}
               title="Filtros"
             >
-               <Icon name="filter" />
-                <span className="btn-expand-label">Filtros</span>
+              <Icon name="filter" />
+              <span className="btn-expand-label">Filtros</span>
             </button>
             {isOwner && (
               <button
@@ -650,16 +648,6 @@ export default function CatalogContainer({
       <CustomerInfoModal storeConfig={storeConfig} />
       <LegalInfoModal storeConfig={storeConfig} />
 
-      {showFavorites && (
-        <FavoritesModal
-          favoriteIds={favoriteIds}
-          onToggleFavorite={toggleFavorite}
-          onClose={() => setShowFavorites(false)}
-          onAddToCart={handleAddToCart}
-          onOpenProduct={setSelectedProduct}
-        />
-      )}
-
       {storeMode && (
         <CollectionView
           collection={selectedCollection}
@@ -729,6 +717,7 @@ export default function CatalogContainer({
         />
       )}
 
+      {beforeFooter && <SectionDivider />}
       {beforeFooter}
 
       {/* ── Footer with map & social links ── */}
@@ -812,10 +801,7 @@ export default function CatalogContainer({
             <div className="footer-bottom-row">
               <div className="app-footer-copyright">
                 &copy; {new Date().getFullYear()} elBisne. Todos los derechos reservados.
-                <span className="footer-credits-text"> Hecho con <span style={{ color: "#e74c3c" }}>❤️‍🔥</span> por{" "}
-                <a href="https://github.com/lazzzarito/elBisne" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-green)", fontWeight: 600, textDecoration: "none" }}>1azarito</a></span>
               </div>
-
             </div>
           </>
         ) : (
@@ -914,10 +900,7 @@ export default function CatalogContainer({
             <div className="footer-bottom-row">
               <div className="app-footer-copyright">
                 &copy; {new Date().getFullYear()} elBisne. Todos los derechos reservados.
-                <span className="footer-credits-text"> Hecho con <span style={{ color: "#e74c3c" }}>❤️‍🔥</span> por{" "}
-                <a href="https://github.com/lazzzarito/elBisne" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-green)", fontWeight: 600, textDecoration: "none" }}>1azarito</a></span>
               </div>
-
             </div>
           </>
         )}

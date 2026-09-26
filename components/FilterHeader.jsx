@@ -18,8 +18,6 @@ export default function FilterHeader({
   sortBy,
   onSortChange,
   storeConfig,
-  favoriteCount = 0,
-  onOpenFavorites,
   productCount,
   totalCount,
   storeMode = false,
@@ -77,13 +75,6 @@ export default function FilterHeader({
   useHistoryPopup(showStoreInfo, () => setShowStoreInfo(false));
   useHistoryPopup(showSortMenu, () => setShowSortMenu(false));
 
-  // ── Listen for "open-store-info" custom event from footer ──
-  useEffect(() => {
-    const handler = () => setShowStoreInfo(true);
-    window.addEventListener("open-store-info", handler);
-    return () => window.removeEventListener("open-store-info", handler);
-  }, []);
-
   // ── Listen for "open-sort-menu" custom event from catalog ──
   useEffect(() => {
     const handler = () => setShowSortMenu(true);
@@ -108,7 +99,6 @@ export default function FilterHeader({
           isOwner={isOwner}
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
-          onOpenFavorites={onOpenFavorites}
           onOpenStoreMenu={onOpenStoreMenu}
           onOpenFilters={() => setShowSortMenu(true)}
           onEditSection={onEditSection}

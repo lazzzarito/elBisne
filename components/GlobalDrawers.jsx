@@ -8,8 +8,12 @@ const SearchModal = dynamic(() => import("@/components/search/SearchModal"), { s
 const ProfileAuthModal = dynamic(() => import("@/components/auth/ProfileAuthModal"), { ssr: false, loading: () => null });
 
 // ── Popups globales del layout ───────────────────────────────────────────
-//  · Carrito: botón flotante (FAB) + evento "open-cart"
-//  · Búsqueda: icono de buscador del TopNav → evento "open-search"
+//  · Carrito + Favoritos: botón flotante (FAB) y, en la página del propio
+//    bisne, el item "Mi carrito" del menú de gestión → evento "open-cart".
+//    Comparten un único cajón con pestañas, y ese cajón es también quien
+//    monta el ProductModal.
+//  · Búsqueda: en la home el campo del TopNav transforma la página; en el resto
+//    de rutas, Enter → evento "open-search" (este mismo drawer)
 //  · Perfil sin sesión: icono de perfil del TopNav → evento "open-profile-auth"
 // Se montan una sola vez aquí; los drawers controlan su propia visibilidad.
 export default function GlobalDrawers({ storeConfig }) {

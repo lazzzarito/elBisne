@@ -61,6 +61,7 @@ export default function GlobalSearch({
   onChange,
   onOpenProduct,
   onClear,
+  onEscape,
   compact = false,
   showDiscovery = false,
   trends = [],
@@ -196,6 +197,9 @@ export default function GlobalSearch({
     } else if (e.key === "Escape") {
       setFocused(false);
       setHighlighted(-1);
+      // En la home Escape además devuelve al feed (el buscador es la página).
+      // El drawer no lo pasa y se comporta como hasta ahora.
+      onEscape?.();
     } else if (e.key === "ArrowDown" && !compact) {
       e.preventDefault();
       setHighlighted((h) => (h + 1) % Math.max(1, suggestionCount));

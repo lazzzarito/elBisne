@@ -114,7 +114,7 @@ export default function CollectionsEditor({ bisneId, collections = [], products 
           <h2 className="store-editor-title">
             {form ? (form.id ? "Editar colección" : "Nueva colección") : "Colecciones y Combos"}
           </h2>
-          <button className="modal-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={18} /></button>
+          <button className="modal-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={20} /></button>
         </div>
 
         {!form ? (
